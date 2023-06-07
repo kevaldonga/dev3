@@ -1,0 +1,13 @@
+npx sequelize-cli model:generate --name bookmarkPostsRelation --force --attributes post_id:integer,profile_id:integer,uuid:UUID 
+npx sequelize-cli model:generate --name categoryOfPost --force --attributes type:string,post_id:integer,uuid:UUID
+npx sequelize-cli model:generate --name comments --force --attributes post_id:integer,profile_id:integer,reactionCount:integer,uuid:UUID
+npx sequelize-cli model:generate --name friendsRelationCount --force --attributes following_id:integer,follower_id:integer,uuid:UUID
+npx sequelize-cli model:generate --name posts --force --attributes profile_id:integer,title:string,description:string,reactionCount:integer,uuid:UUID
+npx sequelize-cli model:generate --name profiles --force --attributes user_id:integer,profileImg:string,name:string,bio:string,uuid:UUID
+npx sequelize-cli model:generate --name reactionOnComments --force --attributes reaction_id:integer,comment_id:integer,profile_id:integer,uuid:UUID
+npx sequelize-cli model:generate --name reactionOnPosts --force --attributes reaction_id:integer,post_id:integer,profile_id:integer,uuid:UUID
+npx sequelize-cli model:generate --name reactions --force --attributes reaction_id:integer,post_id:integer,profile_id:integer,uuid:UUID
+npx sequelize-cli model:generate --name tagList --force --attributes tag:string,count:integer,uuid:UUID
+npx sequelize-cli model:generate --name tagPostRelation --force --attributes tag_id:integer,post_id:integer,uuid:UUID
+npx sequelize-cli model:generate --name tagUserRelation --force --attributes tag_id:integer,profile_id:integer,uuid:UUID
+npx sequelize-cli model:generate --name userRelationCount --force --attributes tag_id:integer,profile_id:integer,uuid:UUID
