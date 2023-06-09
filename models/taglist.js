@@ -10,13 +10,20 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      this.belongsToMany(models.posts, {
+        through: 'tagPostRelation',
+        foreignKey: 'postId',
+      })
+      this.belongsToMany(models.profiles, {
+        through: 'tagUserRelation',
+        foreignKey: 'profileId',
+      })
     }
   }
   tagList.init({
-    tag: DataTypes.STRING,
+    tag: { type: DataTypes.STRING, allowNull: false },
     count: DataTypes.INTEGER,
-    uuid: DataTypes.UUID
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
   }, {
     sequelize,
     modelName: 'tagList',

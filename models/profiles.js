@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model
+  Model, Sequelize, UUIDV4
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class profiles extends Model {
@@ -10,15 +10,23 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      this.belongsTo(models.users)
+      this.belongsToMany(models.posts, {
+        through: 'bookmarkPostsRelation',
+        foreignKey: 'postId'
+      })
+      this.belongsToMany(models.tagList, {
+        through: 'tagUserRelation',
+        foreignKey: 'tagId'
+      })
     }
   }
   profiles.init({
-    user_id: DataTypes.INTEGER,
+    userId: { type: DataTypes.INTEGER, unique: true },
     profileImg: DataTypes.STRING,
-    name: DataTypes.STRING,
+    name: { type: DataTypes.STRING, allowNull: false },
     bio: DataTypes.STRING,
-    uuid: DataTypes.UUID
+    uuid: { type: DataTypes.UUID, defaultValue: UUIDV4 }
   }, {
     sequelize,
     modelName: 'profiles',

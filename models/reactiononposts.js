@@ -10,14 +10,13 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
     }
   }
   reactionOnPosts.init({
-    reaction_id: DataTypes.INTEGER,
-    post_id: DataTypes.INTEGER,
-    profile_id: DataTypes.INTEGER,
-    uuid: DataTypes.UUID
+    reactionId: DataTypes.INTEGER,
+    postId: DataTypes.INTEGER,
+    profileId: DataTypes.INTEGER,
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
   }, {
     sequelize,
     modelName: 'reactionOnPosts',

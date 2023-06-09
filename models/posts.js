@@ -10,15 +10,26 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      this.belongsToMany(models.profiles, {
+        through: 'bookmarkPostsRelation',
+        foreignKey: 'profileId',
+      })
+      this.belongsToMany(models.tagList, {
+        through: 'tagPostRelation',
+        foreignKey: 'tagId',
+      })
+      this.belongsToMany(models.reactions, {
+        through: 'reactionOnPosts',
+        foreignKey: 'reactionId',
+      })
     }
   }
   posts.init({
-    profile_id: DataTypes.INTEGER,
-    title: DataTypes.STRING,
+    profileId: DataTypes.INTEGER,
+    title: { type: DataTypes.STRING, allowNull: false },
     description: DataTypes.STRING,
     reactionCount: DataTypes.INTEGER,
-    uuid: DataTypes.UUID
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
   }, {
     sequelize,
     modelName: 'posts',

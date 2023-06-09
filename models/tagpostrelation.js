@@ -10,13 +10,12 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
     }
   }
   tagPostRelation.init({
-    tag_id: DataTypes.INTEGER,
-    post_id: DataTypes.INTEGER,
-    uuid: DataTypes.UUID
+    tagId: DataTypes.INTEGER,
+    postId: DataTypes.INTEGER,
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
   }, {
     sequelize,
     modelName: 'tagPostRelation',

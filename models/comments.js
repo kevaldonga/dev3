@@ -10,14 +10,21 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      this.belongsToMany(models.reactions, {
+        through: 'reactionOnComments',
+        foreignKey: 'reactionId',
+      })
+      this.belongsToMany(models.profiles, {
+        through: 'reactionOnComments',
+        foreignKey: 'profileId',
+      })
     }
   }
   comments.init({
-    post_id: DataTypes.INTEGER,
-    profile_id: DataTypes.INTEGER,
+    postId: DataTypes.INTEGER,
+    profileId: DataTypes.INTEGER,
     reactionCount: DataTypes.INTEGER,
-    uuid: DataTypes.UUID
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
   }, {
     sequelize,
     modelName: 'comments',
