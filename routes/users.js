@@ -1,52 +1,62 @@
 const app = require('express').Router();
 const { users } = require('../models');
 
-app.post('/search', async (req, res) => {
-    result = await users.findAll({ attributes: { exclude: ["uuid", "token", "password"] }, where: { "id": req.body.id } });
-    res.send(result.length != 0 ? result : "user is not found!");
+app.use(bodyParser.json());
+
+/*
+ * /:uuid - GET - get user
+*/
+app.get('/:uuid', async (req, res) => {
+    const uuid = req.params.uuid;
+    let person = await users.findOne({
+        where: {
+            uuid: uuid,
+        }
+    })
+    res.json(person);
 });
 
-
-// to create user
-app.post('/create', async (req, res) => {
+/* 
+* / - POST - create a user
+*/
+app.post('/', async (req, res) => {
     result = await users.create(req.body);
     res.send(result ? "created successfully!!" : "error occured");
 });
 
-// to update user
-app.post('/', async (req, res) => {
+/*
+* /:uuid - PUT - update a user
+*/
+app.put('/:uuid', async (req, res) => {
+    const uuid = req.params.uuid;
     result = await users.update(req.body, {
         where: {
-            id: req.body.id,
+            "uuid": uuid,
         }
     });
     res.send(result ? "updated successfully!!" : "error occured");
 });
 
 
-// to get all users
-app.get('/', (req, res) => {
-    console.log('now going to await');
-    users.findAll({ attributes: { exclude: ["uuid", "token"] } })
-        .then(resfromdb => res.send({ users: resfromdb }));
-    console.log('await finished');
-    console.log('sending back');
-    console.log('sending finished');
-});
-// app.get('/', async (req, res) => {
-//     console.log('now going to await');
-//     result = await users.findAll({ attributes: { exclude: ["uuid", "token"] } });
-//     console.log('await finished');
-//     console.log('sending back');
-//     res.send({ users: result });
-//     console.log('sending finished');
-// });
-
-
-// to delete user
-app.delete('/', async (req, res) => {
-    result = await users.destroy({ where: { "id": req.body.id } });
+/*
+* /:uuid - DELETE - delete a user by given uuid
+*/
+app.delete('/:uuid', async (req, res) => {
+    const uuid = req.params.uuid;
+    result = await users.destroy({ where: { "uuid": uuid } });
     res.send(result ? "deleted successfully!!" : "error occured");
 });
+
+/*
+* /resource - POST - create
+* /resource - GET - List
+* /parent-resource/:parentresourceId/:childresource - POST - Create - params
+* /resource/:reference - GET - findOne - single collection
+* /resource/:reference - PUT - update
+* /resource/:reference - DELETE - delete
+* /resource/:reference - POST - Nothing
+
+* PATCH - PUT
+*/
 
 module.exports = app;
