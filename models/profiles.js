@@ -10,15 +10,17 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.belongsTo(models.users)
+      this.belongsTo(models.users);
       this.belongsToMany(models.posts, {
         through: 'bookmarkPostsRelation',
         foreignKey: 'postId'
-      })
+      });
       this.belongsToMany(models.tagList, {
         through: 'tagUserRelation',
         foreignKey: 'tagId'
-      })
+      });
+      this.hasMany(models.posts);
+      this.hasMany(models.tagUserRelation);
     }
   }
   profiles.init({

@@ -13,11 +13,13 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsToMany(models.posts, {
         through: 'tagPostRelation',
         foreignKey: 'postId',
-      })
+      });
       this.belongsToMany(models.profiles, {
         through: 'tagUserRelation',
         foreignKey: 'profileId',
-      })
+      });
+      this.hasMany(models.tagPostRelation);
+      this.hasMany(models.taguserRelation);
     }
   }
   tagList.init({

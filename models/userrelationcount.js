@@ -10,7 +10,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.belongsTo(models.profiles)
+      this.belongsTo(models.profiles);
+      this.hasMany(models.friendsRelation);
     }
   }
   userRelationCount.init({

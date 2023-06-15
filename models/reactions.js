@@ -13,11 +13,13 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsToMany(models.comments, {
         through: 'reactionOnComments',
         foreignKey: 'commentId',
-      })
+      });
       this.belongsToMany(models.posts, {
         through: 'reactionOnPosts',
         foreignKey: 'postId',
-      })
+      });
+      this.hasMany(models.reactionOnComments);
+      this.hasMany(models.reactionOnPosts);
     }
   }
   reactions.init({

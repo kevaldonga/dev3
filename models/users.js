@@ -2,7 +2,6 @@
 const {
   Model, UUIDV4, UUIDV1
 } = require('sequelize');
-const profiles = require('./profiles');
 module.exports = (sequelize, DataTypes) => {
   class users extends Model {
     /**
@@ -11,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.hasOne(models.profiles, { as: 'profiles', sourceKey: 'id', foreignKey: 'userId' })
+      this.hasOne(models.profiles, { as: 'profiles', sourceKey: 'id', foreignKey: 'userId' });
     }
   }
   users.init({

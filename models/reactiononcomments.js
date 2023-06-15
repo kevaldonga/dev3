@@ -10,6 +10,9 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
+      this.belongsTo(models.reactions);
+      this.belongsTo(models.comments);
+      this.belongsTo(models.profiles);
     }
   }
   reactionOnComments.init({

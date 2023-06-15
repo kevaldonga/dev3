@@ -13,15 +13,19 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsToMany(models.profiles, {
         through: 'bookmarkPostsRelation',
         foreignKey: 'profileId',
-      })
+      });
       this.belongsToMany(models.tagList, {
         through: 'tagPostRelation',
         foreignKey: 'tagId',
-      })
+      });
       this.belongsToMany(models.reactions, {
         through: 'reactionOnPosts',
         foreignKey: 'reactionId',
-      })
+      });
+      this.hasMany(models.bookmarkPostsRelation);
+      this.hasMany(models.categoryOfPost);
+      this.hasMany(models.reactionOnPosts);
+      this.hasMany(models.tagPostRelation);
     }
   }
   posts.init({
