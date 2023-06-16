@@ -1,5 +1,6 @@
 const app = require('express').Router();
 const { reactions } = require('../models');
+const { Ops } = require('sequelize');
 
 app.use(bodyParser.json())
 
@@ -10,7 +11,7 @@ app.post("/", (req, res) => {
     let result = reactions.create(req.body)
 
     res.send(result ? "reaction created successfully!!" : "error occurred")
-})
+});
 
 /* 
 * /:id - GET - get reaction by id 
@@ -20,11 +21,13 @@ app.get("/:id", (req, res) => {
 
     let result = reactions.findOne({
         where: {
-            "id": id,
-        }
-    })
+            "id": {
+                [Ops.eq]: id,
+            },
+        },
+    });
     res.json(result)
-})
+});
 
 /*
 * /:id - DELETE - delete reaction
@@ -34,11 +37,13 @@ app.delete("/:id", (req, res) => {
 
     let result = reactions.destroy({
         where: {
-            "id": id,
-        }
-    })
+            "id": {
+                [Ops.eq]: id,
+            },
+        },
+    });
 
     res.send(result ? "reaction deleted successfully!!" : "error occured")
-})
+});
 
 module.exports = app;

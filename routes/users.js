@@ -1,5 +1,6 @@
 const app = require('express').Router();
-const { users } = require('../models');
+const { users, tagUserRelation } = require('../models');
+const { Ops } = require('sequelize');
 
 app.use(bodyParser.json());
 
@@ -10,9 +11,11 @@ app.get('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
     let person = await users.findOne({
         where: {
-            uuid: uuid,
-        }
-    })
+            "uuid": {
+                [Ops.eq]: uuid,
+            },
+        },
+    });
     res.json(person);
 });
 
@@ -31,8 +34,10 @@ app.put('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
     result = await users.update(req.body, {
         where: {
-            "uuid": uuid,
-        }
+            "uuid": {
+                [Ops.eq]: uuid,
+            },
+        },
     });
     res.send(result ? "updated successfully!!" : "error occured");
 });
@@ -43,7 +48,13 @@ app.put('/:uuid', async (req, res) => {
 */
 app.delete('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
-    result = await users.destroy({ where: { "uuid": uuid } });
+    result = await users.destroy({
+        where: {
+            "uuid": {
+                [Ops.eq]: uuid,
+            },
+        },
+    });
     res.send(result ? "deleted successfully!!" : "error occured");
 });
 

@@ -4,6 +4,9 @@ const userRouter = require('./routes/users');
 const postRouter = require('./routes/posts');
 const reactionRouter = require('./routes/reactions');
 const tagListRouter = require('./routes/taglist');
+const commentRouter = require('./routes/comments');
+const categoryRouter = require('./routes/categories');
+const bookmarkRouter = require('./routes/bookmarks');
 
 const { users } = require('./models');
 
@@ -17,7 +20,7 @@ app.get('/', async (req, res) => {
     result = await users.findAll({
         include: "profiles"
     });
-    res.send(result);
+    res.json(result);
 });
 
 // Routes
@@ -33,5 +36,14 @@ app.use("/reactions", reactionRouter);
 
 // tagList
 app.use("/tags", tagListRouter);
+
+// bookmarks
+app.use("/bookmarks", bookmarkRouter);
+
+// categories
+app.use("/categories", categoryRouter);
+
+// comments
+app.use("/comments", commentRouter);
 
 app.listen(PORT, () => { console.log('server is running...') });
