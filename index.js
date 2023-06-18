@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const userRouter = require('./routes/users');
+const profileRouter = require('./routes/profiles');
+const userRelationRouter = require('./routes/friends');
 const postRouter = require('./routes/posts');
 const reactionRouter = require('./routes/reactions');
 const tagListRouter = require('./routes/taglist');
@@ -27,6 +29,12 @@ app.get('/', async (req, res) => {
 
 // users
 app.use('/users', userRouter);
+
+// profiles
+app.use('/profiles', profileRouter);
+
+// userRelations
+app.use('/relations', userRelationRouter);
 
 // posts
 app.use("/posts", postRouter);

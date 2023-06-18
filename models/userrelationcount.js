@@ -16,8 +16,8 @@ module.exports = (sequelize, DataTypes) => {
   }
   userRelationCount.init({
     profileId: DataTypes.INTEGER,
-    followings: DataTypes.INTEGER,
-    followers: DataTypes.INTEGER,
+    followings: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    followers: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
   }, {
     sequelize,

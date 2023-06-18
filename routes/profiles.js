@@ -1,15 +1,15 @@
 const app = require('express').Router();
-const { users } = require('../models');
+const { profiles, tagUserRelation } = require('../models');
 const { Ops } = require('sequelize');
 
 app.use(bodyParser.json());
 
 /*
- * /:uuid - GET - get user
+ * /:uuid - GET - get user profile
 */
 app.get('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
-    let result = await users.findOne({
+    let result = await profiles.findOne({
         where: {
             "uuid": {
                 [Ops.eq]: uuid,
@@ -20,19 +20,19 @@ app.get('/:uuid', async (req, res) => {
 });
 
 /* 
-* / - POST - create a user
+* / - POST - create a user profile
 */
 app.post('/', async (req, res) => {
-    result = await users.create(req.body);
+    result = await profiles.create(req.body);
     res.send(result ? "created successfully!!" : "error occured");
 });
 
 /*
-* /:uuid - PUT - update a user
+* /:uuid - PUT - update a user profile
 */
 app.put('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
-    result = await users.update(req.body, {
+    let result = await profiles.update(req.body, {
         where: {
             "uuid": {
                 [Ops.eq]: uuid,
@@ -44,11 +44,11 @@ app.put('/:uuid', async (req, res) => {
 
 
 /*
-* /:uuid - DELETE - delete a user by given uuid
+* /:uuid - DELETE - delete a user profile by given uuid
 */
 app.delete('/:uuid', async (req, res) => {
     const uuid = req.params.uuid;
-    result = await users.destroy({
+    result = await profiles.destroy({
         where: {
             "uuid": {
                 [Ops.eq]: uuid,
@@ -58,16 +58,25 @@ app.delete('/:uuid', async (req, res) => {
     res.send(result ? "deleted successfully!!" : "error occured");
 });
 
-/*
-* /resource - POST - create
-* /resource - GET - List
-* /parent-resource/:parentresourceId/:childresource - POST - Create - params
-* /resource/:reference - GET - findOne - single collection
-* /resource/:reference - PUT - update
-* /resource/:reference - DELETE - delete
-* /resource/:reference - POST - Nothing
-
-* PATCH - PUT
+/* 
+* /:uuid/:tagId - DELETE - delete tag inside profile
 */
+app.delete("/:uuid/:tagId", (req, res) => {
+    const uuid = req.params.uuid;
+    const tagId = req.params.tagId;
+
+    let result = tagUserRelation.destory({
+        where: {
+            "uuid": {
+                [Ops.eq]: uuid,
+            },
+            "tagId": {
+                [Ops.eq]: tagId,
+            },
+        },
+    });
+
+    req.send(result ? "tag removed successfully!!" : "error occured");
+});
 
 module.exports = app;
