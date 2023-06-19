@@ -7,10 +7,10 @@ app.use(bodyParser.json());
 /*
 * /:postId - GET - get category(s) of post by postId 
 */
-app.get("/:postId", (req, res) => {
+app.get("/:postId", async (req, res) => {
     const postId = req.params.postId;
 
-    let result = categorOfPost.findAll({
+    let result = await categorOfPost.findAll({
         where: {
             "postId": {
                 [Ops.eq]: postId,
@@ -24,10 +24,10 @@ app.get("/:postId", (req, res) => {
 /* 
 * /:id - DELETE - remove category of post by id
 */
-app.delete("/:id", (req, res) => {
+app.delete("/:id", async (req, res) => {
     const id = req.params.id;
 
-    let result = categorOfPost.destroy({
+    let result = await categorOfPost.destroy({
         where: {
             "id": {
                 [Ops.eq]: id,
@@ -35,16 +35,33 @@ app.delete("/:id", (req, res) => {
         },
     });
 
-    res.send(result ? "category removed !!" : "error occured")
+    res.send(result ? "category removed !!" : "error occured");
 });
 
 /* 
-* / - POST - create bookmark
+* / - POST - create category
 */
-app.post("/", (req, res) => {
-    let result = categorOfPost.create(req.body);
+app.post("/", async (req, res) => {
+    let result = await categorOfPost.create(req.body);
 
-    res.send(result ? "bookmark created successfully !!" : "error occured")
+    res.send(result ? "category created successfully !!" : "error occured");
+});
+
+/* 
+* /:id/all - GET - get all post of category
+*/
+app.post("/:id/all", async (req, res) => {
+    const id = req.params.id;
+
+    let result = await categorOfPost.findAll({
+        where: {
+            "id": {
+                [Ops.eq]: id,
+            },
+        },
+    });
+
+    res.json(result);
 });
 
 module.exports = app;

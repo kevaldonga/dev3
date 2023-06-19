@@ -7,7 +7,7 @@ app.use(bodyParser.json());
 /* 
 * / - CREATE - create comment
 */
-app.post("/", (req, res) => {
+app.post("/", async (req, res) => {
     let result = comments.create(req.body);
 
     res.send(result ? "comment created successfully!!" : "error occured");
@@ -16,9 +16,9 @@ app.post("/", (req, res) => {
 /* 
 * /:id - GET - get comment by id
 */
-app.get("/:id", (req, res) => {
+app.get("/:id", async (req, res) => {
     const id = req.params.id;
-    let result = comments.findOne({
+    let result = await comments.findOne({
         where: {
             "id": {
                 [Ops.eq]: id,
@@ -31,9 +31,9 @@ app.get("/:id", (req, res) => {
 /* 
 * /:id - POST - update comment by id
 */
-app.post("/:id", (req, res) => {
+app.post("/:id", async (req, res) => {
     const id = req.params.id;
-    let result = comments.update(req.body, {
+    let result = await comments.update(req.body, {
         where: {
             "id": {
                 [Ops.eq]: id,
@@ -46,9 +46,9 @@ app.post("/:id", (req, res) => {
 /* 
 * /:id - DELETE - delete comment by id
 */
-app.post("/:id", (req, res) => {
+app.post("/:id", async (req, res) => {
     const id = req.params.id;
-    let result = comments.destroy({
+    let result = await comments.destroy({
         where: {
             "id": {
                 [Ops.eq]: id,
@@ -62,9 +62,9 @@ app.post("/:id", (req, res) => {
 /*
 * /:commentId/reactions - GET - get all reactions of comment
 */
-app.get("/:commentId/reactions", (req, res) => {
+app.get("/:commentId/reactions", async (req, res) => {
     const commentId = req.params.commentId;
-    let result = reactionOnComments.findAll({
+    let result = await reactionOnComments.findAll({
         where: {
             "commentId": {
                 [Ops.eq]: commentId,
@@ -78,10 +78,10 @@ app.get("/:commentId/reactions", (req, res) => {
 /*
 * /:commentId/:reactionId - DELETE - delete reaction on comment
 */
-app.delete("/:commentId/:reactionId", (req, res) => {
+app.delete("/:commentId/:reactionId", async (req, res) => {
     const commentId = req.params.commentId;
     const reactionId = req.params.reactionId;
-    let result = reactionOnComments.findAll({
+    let result = await reactionOnComments.findAll({
         where: {
             "commentId": {
                 [Ops.eq]: commentId,

@@ -1,5 +1,5 @@
 const app = require('express').Router();
-const { posts, reactionOnPosts, tagPostRelation } = require('../models');
+const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation } = require('../models');
 const { Ops } = require('sequelize');
 
 app.use(bodyParser.json());
@@ -7,8 +7,8 @@ app.use(bodyParser.json());
 /* 
 * / - POST - create post
 */
-app.post("/", (req, res) => {
-    let result = posts.create(req.body)
+app.post("/", async (req, res) => {
+    let result = await posts.create(req.body)
 
     res.send(result ? "post created successfully!!" : "error occurred");
 });
@@ -16,9 +16,9 @@ app.post("/", (req, res) => {
 /* 
 * /:id - GET - get post by its id
 */
-app.get("/:id", (req, res) => {
+app.get("/:id", async (req, res) => {
     const id = req.params.id;
-    let result = posts.findOne({
+    let result = await posts.findOne({
         where: {
             "id": {
                 [Ops.eq]: id,
@@ -31,9 +31,9 @@ app.get("/:id", (req, res) => {
 /*
 * /:id - POST - update the post
 */
-app.post("/:id", (req, res) => {
+app.post("/:id", async (req, res) => {
     const id = req.params.id;
-    let result = posts.update(req.body, {
+    let result = await posts.update(req.body, {
         where: {
             "id": {
                 [Ops.eq]: id,
@@ -47,9 +47,9 @@ app.post("/:id", (req, res) => {
 /*
 * /:id - DELETE - delete the post
 */
-app.delete("/:id", (req, res) => {
+app.delete("/:id", async (req, res) => {
     const id = req.params.id;
-    let result = posts.destroy({
+    let result = await posts.destroy({
         where: {
             "id": {
                 [Ops.eq]: id,
@@ -63,9 +63,25 @@ app.delete("/:id", (req, res) => {
 /* 
 * /:postId/reactions - GET - get all reactions on post
 */
-app.get("/:postId/reactions", (req, res) => {
+app.get("/:postId/reactions", async (req, res) => {
     const postId = req.params.postId;
-    let result = reactionOnPosts.findAll({
+    let result = await reactionOnPosts.findAll({
+        where: {
+            "postId": {
+                [Ops.eq]: postId,
+            },
+        },
+    });
+
+    res.json(result);
+});
+
+/* 
+* /:postId/comments - GET - get all comments on post
+*/
+app.get("/:postId/comments", async (req, res) => {
+    const postId = req.params.postId;
+    let result = await comments.findAll({
         where: {
             "postId": {
                 [Ops.eq]: postId,
@@ -79,11 +95,11 @@ app.get("/:postId/reactions", (req, res) => {
 /* 
 * /:postId/:reactionId - DELETE - delete reaction on post
 */
-app.delete("/:postId/:reactionId", (req, res) => {
+app.delete("/:postId/:reactionId", async (req, res) => {
     const postId = req.params.postId;
     const reactionId = req.params.reactionId;
 
-    let result = reactionOnPosts.destroy({
+    let result = await reactionOnPosts.destroy({
         where: {
             "postId": {
                 [Ops.eq]: postId,
@@ -100,10 +116,10 @@ app.delete("/:postId/:reactionId", (req, res) => {
 /* 
 * /:postId/tags - GET - get all tags in post
 */
-app.get("/:postId/tags", (req, res) => {
+app.get("/:postId/tags", async (req, res) => {
     const postId = req.params.postId;
 
-    let result = tagPostRelation.findAll({
+    let result = await tagPostRelation.findAll({
         where: {
             "postId": {
                 [Ops.eq]: postId,
@@ -115,13 +131,30 @@ app.get("/:postId/tags", (req, res) => {
 });
 
 /* 
+* /:postId/tags - GET - get all posts of tag
+*/
+app.get("/:tagId/posts", async (req, res) => {
+    const tagId = req.params.tagId;
+
+    let result = await tagPostRelation.findAll({
+        where: {
+            "tagId": {
+                [Ops.eq]: tagId,
+            },
+        },
+    });
+
+    res.json(result);
+});
+
+/* 
 * /:postId/:tagId - DELETE - delete tag in post
 */
-app.delete("/:postId/:tagId", (req, res) => {
+app.delete("/:postId/:tagId", async (req, res) => {
     const postId = req.params.postId;
     const tagId = req.params.tagId;
 
-    let result = tagPostRelation.destroy({
+    let result = await tagPostRelation.destroy({
         where: {
             "postId": {
                 [Ops.eq]: postId,
@@ -135,4 +168,50 @@ app.delete("/:postId/:tagId", (req, res) => {
     res.send(result ? "tag removed succesfully!!" : "error occured");
 });
 
-module.exports = app
+/* 
+* /:postId/bookmarks/count
+*/
+app.get("/:postId/bookmarks/count", async (req, res) => {
+    const postId = req.params.postId;
+
+    let result = await bookmarkPostRelation.findAll({
+        where: {
+            "postId": postId,
+        },
+    });
+    res.json({ length: result.length });
+});
+
+/* 
+* /:postId/bookmarks/All
+*/
+app.get("/:postId/bookmarks/count", async (req, res) => {
+    const postId = req.params.postId;
+
+    let result = await bookmarkPostRelation.findAll({
+        where: {
+            "postId": postId,
+        },
+    });
+    res.json(result);
+});
+
+app.get("/:profileId/:postId/isBookmarked", async (req, res) => {
+    const profileId = req.params.profileId;
+    const postId = req.params.postId;
+
+    let result = await bookmarkPostRelation.findOne({
+        where: {
+            "profileId": {
+                [Ops.eq]: profileId,
+            },
+            "postId": {
+                [Ops.eq]: postId,
+            },
+        },
+    });
+
+    res.json({ "isBookmarked": !result.isEmpty });
+});
+
+module.exports = app;

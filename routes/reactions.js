@@ -7,8 +7,8 @@ app.use(bodyParser.json())
 /* 
 * / - POST - create reaction
 */
-app.post("/", (req, res) => {
-    let result = reactions.create(req.body)
+app.post("/", async (req, res) => {
+    let result = await reactions.create(req.body)
 
     res.send(result ? "reaction created successfully!!" : "error occurred")
 });
@@ -16,10 +16,10 @@ app.post("/", (req, res) => {
 /* 
 * /:id - GET - get reaction by id 
 */
-app.get("/:id", (req, res) => {
+app.get("/:id", async (req, res) => {
     const id = req.params.id;
 
-    let result = reactions.findOne({
+    let result = await reactions.findOne({
         where: {
             "id": {
                 [Ops.eq]: id,
@@ -32,10 +32,10 @@ app.get("/:id", (req, res) => {
 /*
 * /:id - DELETE - delete reaction
 */
-app.delete("/:id", (req, res) => {
+app.delete("/:id", async (req, res) => {
     const id = req.params.id;
 
-    let result = reactions.destroy({
+    let result = await reactions.destroy({
         where: {
             "id": {
                 [Ops.eq]: id,

@@ -7,8 +7,8 @@ app.use(bodyParser.json());
 /* 
 * / - POST - add post to bookmark
 */
-app.post("/", (req, res) => {
-    bookmarkPostsRelation.create(req.body);
+app.post("/", async (req, res) => {
+    let result = await bookmarkPostsRelation.create(req.body);
 
     res.send(result ? "post bookmarked!!" : "error occured");
 });
@@ -16,9 +16,9 @@ app.post("/", (req, res) => {
 /*
 * /:profileId - GET - get all bookmarked posts
 */
-app.get("/:profileId", (req, res) => {
+app.get("/:profileId", async (req, res) => {
     const profileId = req.params.profileId;
-    let result = bookmarkPostsRelation.findAll({
+    let result = await bookmarkPostsRelation.findAll({
         where: {
             "profileId": {
                 [Ops.eq]: profileId,
@@ -32,9 +32,9 @@ app.get("/:profileId", (req, res) => {
 /* 
 * /:id - DELETE - remove bookmark on post by given id
 */
-app.delete("/:id", (req, res) => {
+app.delete("/:id", async (req, res) => {
     const id = req.params.id;
-    let result = bookmarkPostsRelation.destroy({
+    let result = await bookmarkPostsRelation.destroy({
         where: {
             "id": {
                 [Ops.eq]: id,

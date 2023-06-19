@@ -58,14 +58,32 @@ app.delete('/:uuid', async (req, res) => {
     res.send(result ? "deleted successfully!!" : "error occured");
 });
 
+
+/*
+* /:profileId/tags - GET - get all tags of profile
+*/
+app.get("/:profileId/tags", async (req, res) => {
+    const profileId = req.params.profileId;
+
+    let result = await tagUserRelation.findAll({
+        where: {
+            "profileId": {
+                [Ops.eq]: profileId,
+            },
+        },
+    });
+
+    res.send(result);
+});
+
 /* 
 * /:uuid/:tagId - DELETE - delete tag inside profile
 */
-app.delete("/:uuid/:tagId", (req, res) => {
+app.delete("/:uuid/:tagId", async (req, res) => {
     const uuid = req.params.uuid;
     const tagId = req.params.tagId;
 
-    let result = tagUserRelation.destory({
+    let result = await tagUserRelation.destory({
         where: {
             "uuid": {
                 [Ops.eq]: uuid,
@@ -76,7 +94,7 @@ app.delete("/:uuid/:tagId", (req, res) => {
         },
     });
 
-    req.send(result ? "tag removed successfully!!" : "error occured");
+    res.send(result ? "tag removed successfully!!" : "error occured");
 });
 
 module.exports = app;

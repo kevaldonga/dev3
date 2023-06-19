@@ -7,10 +7,10 @@ app.use(bodyParser.json());
 /* 
 * /:profileId - GET - get followers, following count of user
 */
-app.get("/:profileId", (req, res) => {
+app.get("/:profileId", async (req, res) => {
     const profileId = req.params.profileId;
 
-    let result = userRelationCount.findOne({
+    let result = await userRelationCount.findOne({
         where: {
             "profileId": {
                 [Ops.eq]: profileId,
@@ -24,10 +24,10 @@ app.get("/:profileId", (req, res) => {
 /* 
 * /:profileId/followers - GET - get all followers of user
 */
-app.get("/:profileId/followers", (req, res) => {
+app.get("/:profileId/followers", async (req, res) => {
     const profileId = req.params.profileId;
 
-    let result = friendsRelation.findAll({
+    let result = await friendsRelation.findAll({
         where: {
             "profileId": {
                 [Ops.eq]: profileId,
@@ -41,10 +41,10 @@ app.get("/:profileId/followers", (req, res) => {
 /* 
 * /:profileId/following - GET - get all followings of user
 */
-app.get("/:profileId/followings", (req, res) => {
+app.get("/:profileId/followings", async (req, res) => {
     const profileId = req.params.profileId;
 
-    let result = friendsRelation.findAll({
+    let result = await friendsRelation.findAll({
         where: {
             "profileId": {
                 [Ops.eq]: profileId,
@@ -58,14 +58,14 @@ app.get("/:profileId/followings", (req, res) => {
 /* 
 * /:profileId/relations - POST - update on user follows other user
 */
-app.post("/:profileId/relations", (req, res) => {
+app.post("/:profileId/relations", async (req, res) => {
     const profileid = req.params.profileId;
 
     const followerProfileId = req.body.follower;
     const followingProfileId = req.body.following;
 
     // update friendsRelation table
-    userRelationCount.create({
+    await userRelationCount.create({
         "followingProfileId": followingProfileId,
         "followerProfileId": followerProfileId,
     });
@@ -79,14 +79,14 @@ app.post("/:profileId/relations", (req, res) => {
 /* 
 * /:profileId/relations - DELETE - delete on user follows other user
 */
-app.post("/:profileId/relations", (req, res) => {
+app.post("/:profileId/relations", async (req, res) => {
     const profileid = req.params.profileId;
 
     const followerProfileId = req.body.follower;
     const followingProfileId = req.body.following;
 
     // update friendsRelation table
-    userRelationCount.destroy({
+    await userRelationCount.destroy({
         "followingProfileId": followingProfileId,
         "followerProfileId": followerProfileId,
     });

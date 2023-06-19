@@ -7,8 +7,8 @@ app.use(bodyParser.json())
 /* 
 * / - POST - create tag
 */
-app.post("/", (req, res) => {
-    let result = tagList.create(req.body)
+app.post("/", async (req, res) => {
+    let result = await tagList.create(req.body)
 
     res.send(result ? "tag is created successfully!!" : "error occurred")
 });
@@ -16,9 +16,9 @@ app.post("/", (req, res) => {
 /* 
 * /:id - DELETE - delete tag
 */
-app.delete("/:id", (req, res) => {
+app.delete("/:id", async (req, res) => {
     const id = req.params.id;
-    let result = tagList.destroy(req.body, {
+    let result = await tagList.destroy(req.body, {
         where: {
             "id": {
                 [Ops.eq]: id,
@@ -32,9 +32,9 @@ app.delete("/:id", (req, res) => {
 /* 
 * /:id - GET - get tag by id
 */
-app.get("/:id", (req, res) => {
+app.get("/:id", async (req, res) => {
     const id = req.params.id;
-    let result = tagList.findOne({
+    let result = await tagList.findOne({
         where: {
             "id": {
                 [Ops.eq]: id,

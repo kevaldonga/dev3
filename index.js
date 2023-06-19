@@ -18,13 +18,6 @@ let app = express();
 
 app.use(bodyParser.json());
 
-app.get('/', async (req, res) => {
-    result = await users.findAll({
-        include: "profiles"
-    });
-    res.json(result);
-});
-
 // Routes
 
 // users
