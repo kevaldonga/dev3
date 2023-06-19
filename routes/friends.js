@@ -57,28 +57,28 @@ app.get("/:profileId/followings", async (req, res) => {
 * /:profileId/relations - POST - update on user follows other user
 */
 app.post("/:profileId/relations", async (req, res) => {
-    const profileid = req.params.profileId;
+    const profileId = parseInt(req.params.profileId);
 
-    const followerProfileId = req.body.follower;
+    const followerProfileId = req.body.followerProfileId;
     const beingFollowedProfileId = req.body.beingFollowedProfileId;
 
     // update friendsRelation table
-    await userRelationCount.create({
+    let result = await friendsRelation.create({
         "beingFollowedProfileId": beingFollowedProfileId,
         "followerProfileId": followerProfileId,
     });
 
     // increment  following count in profile
-    await userRelationCount.increment("followerProfileId", {
+    await userRelationCount.increment("followings", {
         by: 1, where: {
             "profileId": {
-                [Ops.eq]: profileid,
+                [Ops.eq]: profileId,
             },
         }
     });
 
     // increment follower count in other profile
-    await userRelationCount.increment("beingFollowedProfileId", {
+    await userRelationCount.increment("followers", {
         by: 1, where: {
             "profileId": {
                 [Ops.eq]: beingFollowedProfileId,
@@ -99,7 +99,7 @@ app.put("/:profileId/relations", async (req, res) => {
 
     // update friendsRelation table
     await userRelationCount.destroy({
-        "followingProfileId": followingProfileId,
+        "followerProfileId": followerProfileId,
         "beingFollowedProfileId": beingFollowedProfileId,
     });
 

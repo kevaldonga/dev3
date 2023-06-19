@@ -20,7 +20,6 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'tagId'
       });
       this.hasMany(models.posts);
-      this.hasMany(models.tagUserRelation);
     }
 
     onlyActive() {
