@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model
+  Model, Sequelize
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class userRelationCount extends Model {
@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     profileId: DataTypes.INTEGER,
     followings: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     followers: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,
     modelName: 'userRelationCount',

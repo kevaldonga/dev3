@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model, UUIDV4
+  Model, Sequelize
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class friendsRelation extends Model {
@@ -11,13 +11,13 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.profiles, { foreignKey: "followerProfileId" });
-      this.belongsTo(models.profiles, { foreignKey: "followingProfileId" });
+      this.belongsTo(models.profiles, { foreignKey: "beingFollowedProfileId" });
     }
   }
   friendsRelation.init({
-    followingProfileId: DataTypes.INTEGER,
-    followerProfileId: DataTypes.INTEGER,
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 }
+    followerProfileId: { type: DataTypes.INTEGER, allowNull: false },
+    beingFollowedProfileId: { type: DataTypes.INTEGER, allowNull: false },
+    uuid: { type: DataTypes.UUID, defaultValue: Sequelize.UUIDV4, allowNull: false }
   }, {
     sequelize,
     modelName: 'friendsRelation',

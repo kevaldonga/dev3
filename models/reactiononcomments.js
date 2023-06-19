@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model
+  Model, Sequelize
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class reactionOnComments extends Model {
@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
     reactionId: DataTypes.INTEGER,
     commentId: DataTypes.INTEGER,
     profileId: DataTypes.INTEGER,
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,
     modelName: 'reactionOnComments',

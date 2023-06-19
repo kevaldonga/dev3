@@ -1,4 +1,5 @@
 const app = require('express').Router();
+const bodyParser = require('body-parser');
 const { categorOfPost } = require('../models');
 const { Ops } = require('sequelize');
 
@@ -18,7 +19,7 @@ app.get("/:postId", async (req, res) => {
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 /* 
@@ -61,7 +62,7 @@ app.post("/:id/all", async (req, res) => {
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 module.exports = app;

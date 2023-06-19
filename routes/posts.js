@@ -1,4 +1,5 @@
 const app = require('express').Router();
+const bodyParser = require('body-parser');
 const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation } = require('../models');
 const { Ops } = require('sequelize');
 
@@ -25,7 +26,7 @@ app.get("/:id", async (req, res) => {
             },
         },
     });
-    res.json(result);
+    res.send(result);
 });
 
 /*
@@ -73,7 +74,7 @@ app.get("/:postId/reactions", async (req, res) => {
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 /* 
@@ -89,7 +90,7 @@ app.get("/:postId/comments", async (req, res) => {
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 /* 
@@ -127,7 +128,7 @@ app.get("/:postId/tags", async (req, res) => {
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 /* 
@@ -144,7 +145,7 @@ app.get("/:tagId/posts", async (req, res) => {
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 /* 
@@ -179,7 +180,7 @@ app.get("/:postId/bookmarks/count", async (req, res) => {
             "postId": postId,
         },
     });
-    res.json({ length: result.length });
+    res.send({ length: result.length });
 });
 
 /* 
@@ -193,7 +194,7 @@ app.get("/:postId/bookmarks/count", async (req, res) => {
             "postId": postId,
         },
     });
-    res.json(result);
+    res.send(result);
 });
 
 app.get("/:profileId/:postId/isBookmarked", async (req, res) => {
@@ -211,7 +212,7 @@ app.get("/:profileId/:postId/isBookmarked", async (req, res) => {
         },
     });
 
-    res.json({ "isBookmarked": !result.isEmpty });
+    res.send({ "isBookmarked": !result.isEmpty });
 });
 
 module.exports = app;

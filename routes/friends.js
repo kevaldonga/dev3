@@ -1,4 +1,5 @@
 const app = require('express').Router();
+const bodyParser = require('body-parser');
 const { friendsRelation, userRelationCount } = require('../models');
 const Ops = require('sequelize');
 
@@ -18,7 +19,7 @@ app.get("/:profileId", async (req, res) => {
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 /* 
@@ -26,16 +27,13 @@ app.get("/:profileId", async (req, res) => {
 */
 app.get("/:profileId/followers", async (req, res) => {
     const profileId = req.params.profileId;
-
     let result = await friendsRelation.findAll({
         where: {
-            "profileId": {
-                [Ops.eq]: profileId,
-            },
+            "beingFollowedProfileId": profileId,
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 /* 
@@ -52,7 +50,7 @@ app.get("/:profileId/followings", async (req, res) => {
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 /* 
@@ -62,38 +60,66 @@ app.post("/:profileId/relations", async (req, res) => {
     const profileid = req.params.profileId;
 
     const followerProfileId = req.body.follower;
-    const followingProfileId = req.body.following;
+    const beingFollowedProfileId = req.body.beingFollowedProfileId;
 
     // update friendsRelation table
     await userRelationCount.create({
-        "followingProfileId": followingProfileId,
+        "beingFollowedProfileId": beingFollowedProfileId,
         "followerProfileId": followerProfileId,
     });
 
     // increment  following count in profile
+    await userRelationCount.increment("followerProfileId", {
+        by: 1, where: {
+            "profileId": {
+                [Ops.eq]: profileid,
+            },
+        }
+    });
 
     // increment follower count in other profile
+    await userRelationCount.increment("beingFollowedProfileId", {
+        by: 1, where: {
+            "profileId": {
+                [Ops.eq]: beingFollowedProfileId,
+            },
+        }
+    });
 
 });
 
 /* 
 * /:profileId/relations - DELETE - delete on user follows other user
 */
-app.post("/:profileId/relations", async (req, res) => {
+app.put("/:profileId/relations", async (req, res) => {
     const profileid = req.params.profileId;
 
     const followerProfileId = req.body.follower;
-    const followingProfileId = req.body.following;
+    const beingFollowedProfileId = req.body.beingFollowedProfileId;
 
     // update friendsRelation table
     await userRelationCount.destroy({
         "followingProfileId": followingProfileId,
-        "followerProfileId": followerProfileId,
+        "beingFollowedProfileId": beingFollowedProfileId,
     });
 
     // decrement following count in profile
+    await userRelationCount.decrement("followingProfileCount", {
+        by: 1, where: {
+            "profileId": {
+                [Ops.eq]: profileid,
+            },
+        }
+    });
 
     // decrement follower count in other profile
+    await userRelationCount.decrement("beingFollowedProfileId", {
+        by: 1, where: {
+            "profileId": {
+                [Ops.eq]: beingFollowedProfileId,
+            },
+        }
+    });
 
 });
 

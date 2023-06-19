@@ -1,4 +1,5 @@
 const app = require('express').Router();
+const bodyParser = require('body-parser');
 const { bookmarkPostsRelation } = require('../models');
 const { Ops } = require('sequelize');
 
@@ -26,7 +27,7 @@ app.get("/:profileId", async (req, res) => {
         },
     });
 
-    res.json(result);
+    res.send(result);
 });
 
 /* 

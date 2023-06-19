@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model
+  Model, Sequelize
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class categoryOfPost extends Model {
@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
   categoryOfPost.init({
     type: DataTypes.STRING,
     postId: DataTypes.INTEGER,
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,
     modelName: 'categoryOfPost',

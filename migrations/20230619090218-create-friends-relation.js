@@ -9,10 +9,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      followingId: {
+      followerProfileId: {
         type: Sequelize.INTEGER
       },
-      followerId: {
+      beingFollowedProfileId: {
         type: Sequelize.INTEGER
       },
       uuid: {

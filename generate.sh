@@ -2,7 +2,7 @@ npx sequelize-cli model:generate --name users --force --attributes username:stri
 npx sequelize-cli model:generate --name bookmarkPostsRelation --force --attributes postId:integer,profileId:integer,uuid:UUID 
 npx sequelize-cli model:generate --name categoryOfPost --force --attributes type:string,postId:integer,uuid:UUID
 npx sequelize-cli model:generate --name comments --force --attributes postId:integer,profileId:integer,reactionCount:integer,uuid:UUID
-npx sequelize-cli model:generate --name friendsRelation --force --attributes followingId:integer,followerId:integer,uuid:UUID
+npx sequelize-cli model:generate --name friendsRelation --force --attributes followerProfileId:integer,beingFollowedProfileId:integer,uuid:UUID
 npx sequelize-cli model:generate --name posts --force --attributes profileId:integer,title:string,description:string,reactionCount:integer,uuid:UUID
 npx sequelize-cli model:generate --name profiles --force --attributes userId:integer,profileImg:string,isActive: boolean,name:string,bio:string,uuid:UUID
 npx sequelize-cli model:generate --name reactionOnComments --force --attributes reactionId:integer,commentId:integer,profileId:integer,uuid:UUID

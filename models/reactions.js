@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model
+  Model, Sequelize
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class reactions extends Model {
@@ -18,13 +18,11 @@ module.exports = (sequelize, DataTypes) => {
         through: 'reactionOnPosts',
         foreignKey: 'postId',
       });
-      this.hasMany(models.reactionOnComments);
-      this.hasMany(models.reactionOnPosts);
     }
   }
   reactions.init({
     reaction: { type: DataTypes.CHAR, allowNull: false },
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,
     modelName: 'reactions',

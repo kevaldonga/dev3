@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model
+  Model, Sequelize
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class tagList extends Model {
@@ -18,14 +18,12 @@ module.exports = (sequelize, DataTypes) => {
         through: 'tagUserRelation',
         foreignKey: 'profileId',
       });
-      this.hasMany(models.tagPostRelation);
-      this.hasMany(models.taguserRelation);
     }
   }
   tagList.init({
     tag: { type: DataTypes.STRING, allowNull: false },
     count: DataTypes.INTEGER,
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: UUIDV4 },
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,
     modelName: 'tagList',

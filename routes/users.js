@@ -1,4 +1,5 @@
 const app = require('express').Router();
+const bodyParser = require('body-parser');
 const { users } = require('../models');
 const { Ops } = require('sequelize');
 
@@ -16,7 +17,7 @@ app.get('/:uuid', async (req, res) => {
             },
         },
     });
-    res.json(result);
+    res.send(result);
 });
 
 /* 
