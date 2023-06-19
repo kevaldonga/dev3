@@ -15,9 +15,6 @@ module.exports = {
       password: {
         type: Sequelize.STRING
       },
-      isActive: {
-        type: Sequelize.BOOLEAN
-      },
       uuid: {
         type: Sequelize.UUID
       },

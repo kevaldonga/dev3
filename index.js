@@ -10,8 +10,6 @@ const commentRouter = require('./routes/comments');
 const categoryRouter = require('./routes/categories');
 const bookmarkRouter = require('./routes/bookmarks');
 
-const { users } = require('./models');
-
 const PORT = 4000;
 
 let app = express();
