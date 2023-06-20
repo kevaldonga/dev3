@@ -1,7 +1,7 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { comments, reactionOnComments } = require('../models');
-const { Ops } = require('sequelize');
+const { Op } = require('sequelize');
 
 app.use(bodyParser.json());
 
@@ -22,7 +22,7 @@ app.get("/:id", async (req, res) => {
     let result = await comments.findOne({
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });
@@ -37,7 +37,7 @@ app.post("/:id", async (req, res) => {
     let result = await comments.update(req.body, {
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });
@@ -52,7 +52,7 @@ app.post("/:id", async (req, res) => {
     let result = await comments.destroy({
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });
@@ -68,7 +68,7 @@ app.get("/:commentId/reactions", async (req, res) => {
     let result = await reactionOnComments.findAll({
         where: {
             "commentId": {
-                [Ops.eq]: commentId,
+                [Op.eq]: commentId,
             },
         },
     });
@@ -85,10 +85,10 @@ app.delete("/:commentId/:reactionId", async (req, res) => {
     let result = await reactionOnComments.findAll({
         where: {
             "commentId": {
-                [Ops.eq]: commentId,
+                [Op.eq]: commentId,
             },
             "reactionId": {
-                [Ops.eq]: reactionId,
+                [Op.eq]: reactionId,
             },
         },
     });

@@ -1,7 +1,7 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { categorOfPost } = require('../models');
-const { Ops } = require('sequelize');
+const { Op } = require('sequelize');
 
 app.use(bodyParser.json());
 
@@ -14,7 +14,7 @@ app.get("/:postId", async (req, res) => {
     let result = await categorOfPost.findAll({
         where: {
             "postId": {
-                [Ops.eq]: postId,
+                [Op.eq]: postId,
             },
         },
     });
@@ -31,7 +31,7 @@ app.delete("/:id", async (req, res) => {
     let result = await categorOfPost.destroy({
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });
@@ -57,7 +57,7 @@ app.post("/:id/all", async (req, res) => {
     let result = await categorOfPost.findAll({
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });

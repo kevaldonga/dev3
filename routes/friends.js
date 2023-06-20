@@ -1,26 +1,9 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { friendsRelation, userRelationCount } = require('../models');
-const Ops = require('sequelize');
+const { friendsRelation, profiles } = require('../models');
+const { Op } = require('sequelize');
 
 app.use(bodyParser.json());
-
-/* 
-* /:profileId - GET - get followers, following count of user
-*/
-app.get("/:profileId", async (req, res) => {
-    const profileId = req.params.profileId;
-
-    let result = await userRelationCount.findOne({
-        where: {
-            "profileId": {
-                [Ops.eq]: profileId,
-            },
-        },
-    });
-
-    res.send(result);
-});
 
 /* 
 * /:profileId/followers - GET - get all followers of user
@@ -45,7 +28,7 @@ app.get("/:profileId/followings", async (req, res) => {
     let result = await friendsRelation.findAll({
         where: {
             "profileId": {
-                [Ops.eq]: profileId,
+                [Op.eq]: profileId,
             },
         },
     });
@@ -57,7 +40,7 @@ app.get("/:profileId/followings", async (req, res) => {
 * /:profileId/relations - POST - update on user follows other user
 */
 app.post("/:profileId/relations", async (req, res) => {
-    const profileId = parseInt(req.params.profileId);
+    const profileId = req.params.profileId;
 
     const followerProfileId = req.body.followerProfileId;
     const beingFollowedProfileId = req.body.beingFollowedProfileId;
@@ -68,20 +51,22 @@ app.post("/:profileId/relations", async (req, res) => {
         "followerProfileId": followerProfileId,
     });
 
+    res.send(result);
+
     // increment  following count in profile
-    await userRelationCount.increment("followings", {
-        by: 1, where: {
+    await profiles.increment("followings", {
+        where: {
             "profileId": {
-                [Ops.eq]: profileId,
+                [Op.eq]: profileId,
             },
         }
     });
 
     // increment follower count in other profile
-    await userRelationCount.increment("followers", {
-        by: 1, where: {
+    await profiles.increment("followers", {
+        where: {
             "profileId": {
-                [Ops.eq]: beingFollowedProfileId,
+                [Op.eq]: beingFollowedProfileId,
             },
         }
     });
@@ -91,32 +76,32 @@ app.post("/:profileId/relations", async (req, res) => {
 /* 
 * /:profileId/relations - DELETE - delete on user follows other user
 */
-app.put("/:profileId/relations", async (req, res) => {
+app.delete("/:profileId/relations", async (req, res) => {
     const profileid = req.params.profileId;
 
     const followerProfileId = req.body.follower;
     const beingFollowedProfileId = req.body.beingFollowedProfileId;
 
     // update friendsRelation table
-    await userRelationCount.destroy({
+    await friendsRelation.destroy({
         "followerProfileId": followerProfileId,
         "beingFollowedProfileId": beingFollowedProfileId,
     });
 
     // decrement following count in profile
-    await userRelationCount.decrement("followingProfileCount", {
+    await profiles.decrement("followings", {
         by: 1, where: {
             "profileId": {
-                [Ops.eq]: profileid,
+                [Op.eq]: profileid,
             },
         }
     });
 
     // decrement follower count in other profile
-    await userRelationCount.decrement("beingFollowedProfileId", {
+    await profiles.decrement("followers", {
         by: 1, where: {
             "profileId": {
-                [Ops.eq]: beingFollowedProfileId,
+                [Op.eq]: beingFollowedProfileId,
             },
         }
     });

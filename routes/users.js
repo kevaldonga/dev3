@@ -1,7 +1,7 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { users } = require('../models');
-const { Ops } = require('sequelize');
+const { Op } = require('sequelize');
 
 app.use(bodyParser.json());
 
@@ -13,7 +13,7 @@ app.get('/:uuid', async (req, res) => {
     let result = await users.findOne({
         where: {
             "uuid": {
-                [Ops.eq]: uuid,
+                [Op.eq]: uuid,
             },
         },
     });
@@ -36,7 +36,7 @@ app.put('/:uuid', async (req, res) => {
     result = await users.update(req.body, {
         where: {
             "uuid": {
-                [Ops.eq]: uuid,
+                [Op.eq]: uuid,
             },
         },
     });
@@ -52,7 +52,7 @@ app.delete('/:uuid', async (req, res) => {
     result = await users.destroy({
         where: {
             "uuid": {
-                [Ops.eq]: uuid,
+                [Op.eq]: uuid,
             },
         },
     });

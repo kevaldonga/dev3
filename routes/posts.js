@@ -1,7 +1,7 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation } = require('../models');
-const { Ops } = require('sequelize');
+const { Op } = require('sequelize');
 
 app.use(bodyParser.json());
 
@@ -22,7 +22,7 @@ app.get("/:id", async (req, res) => {
     let result = await posts.findOne({
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });
@@ -37,7 +37,7 @@ app.post("/:id", async (req, res) => {
     let result = await posts.update(req.body, {
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });
@@ -53,7 +53,7 @@ app.delete("/:id", async (req, res) => {
     let result = await posts.destroy({
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });
@@ -69,7 +69,7 @@ app.get("/:postId/reactions", async (req, res) => {
     let result = await reactionOnPosts.findAll({
         where: {
             "postId": {
-                [Ops.eq]: postId,
+                [Op.eq]: postId,
             },
         },
     });
@@ -85,7 +85,7 @@ app.get("/:postId/comments", async (req, res) => {
     let result = await comments.findAll({
         where: {
             "postId": {
-                [Ops.eq]: postId,
+                [Op.eq]: postId,
             },
         },
     });
@@ -103,10 +103,10 @@ app.delete("/:postId/:reactionId", async (req, res) => {
     let result = await reactionOnPosts.destroy({
         where: {
             "postId": {
-                [Ops.eq]: postId,
+                [Op.eq]: postId,
             },
             "reactionId": {
-                [Ops.eq]: reactionId,
+                [Op.eq]: reactionId,
             },
         }
     });
@@ -123,7 +123,7 @@ app.get("/:postId/tags", async (req, res) => {
     let result = await tagPostRelation.findAll({
         where: {
             "postId": {
-                [Ops.eq]: postId,
+                [Op.eq]: postId,
             },
         },
     });
@@ -140,7 +140,7 @@ app.get("/:tagId/posts", async (req, res) => {
     let result = await tagPostRelation.findAll({
         where: {
             "tagId": {
-                [Ops.eq]: tagId,
+                [Op.eq]: tagId,
             },
         },
     });
@@ -158,10 +158,10 @@ app.delete("/:postId/:tagId", async (req, res) => {
     let result = await tagPostRelation.destroy({
         where: {
             "postId": {
-                [Ops.eq]: postId,
+                [Op.eq]: postId,
             },
             "tagId": {
-                [Ops.eq]: tagId,
+                [Op.eq]: tagId,
             },
         },
     });
@@ -204,10 +204,10 @@ app.get("/:profileId/:postId/isBookmarked", async (req, res) => {
     let result = await bookmarkPostRelation.findOne({
         where: {
             "profileId": {
-                [Ops.eq]: profileId,
+                [Op.eq]: profileId,
             },
             "postId": {
-                [Ops.eq]: postId,
+                [Op.eq]: postId,
             },
         },
     });

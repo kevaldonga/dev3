@@ -1,7 +1,7 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { profiles, tagUserRelation } = require('../models');
-const { Ops } = require('sequelize');
+const { profiles, tagUserRelation, userRelationCount } = require('../models');
+const { Op } = require('sequelize');
 
 app.use(bodyParser.json());
 
@@ -13,7 +13,7 @@ app.get('/:uuid', async (req, res) => {
     let result = await profiles.findOne({
         where: {
             "uuid": {
-                [Ops.eq]: uuid,
+                [Op.eq]: uuid,
             },
         },
     });
@@ -24,7 +24,10 @@ app.get('/:uuid', async (req, res) => {
 * / - POST - create a user profile
 */
 app.post('/', async (req, res) => {
-    result = await profiles.create(req.body);
+    result = await profiles.create(req.body).then(async (user) => {
+        const id = user.id;
+        await userRelationCount.create({ "profileId": id });
+    });
     res.send(result ? "created successfully!!" : "error occured");
 });
 
@@ -36,7 +39,7 @@ app.put('/:uuid', async (req, res) => {
     let result = await profiles.update(req.body, {
         where: {
             "uuid": {
-                [Ops.eq]: uuid,
+                [Op.eq]: uuid,
             },
         },
     });
@@ -52,7 +55,7 @@ app.delete('/:uuid', async (req, res) => {
     result = await profiles.destroy({
         where: {
             "uuid": {
-                [Ops.eq]: uuid,
+                [Op.eq]: uuid,
             },
         },
     });
@@ -69,7 +72,7 @@ app.get("/:profileId/tags", async (req, res) => {
     let result = await tagUserRelation.findAll({
         where: {
             "profileId": {
-                [Ops.eq]: profileId,
+                [Op.eq]: profileId,
             },
         },
     });
@@ -87,10 +90,10 @@ app.delete("/:uuid/:tagId", async (req, res) => {
     let result = await tagUserRelation.destory({
         where: {
             "uuid": {
-                [Ops.eq]: uuid,
+                [Op.eq]: uuid,
             },
             "tagId": {
-                [Ops.eq]: tagId,
+                [Op.eq]: tagId,
             },
         },
     });

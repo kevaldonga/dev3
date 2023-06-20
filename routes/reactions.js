@@ -1,7 +1,7 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { reactions } = require('../models');
-const { Ops } = require('sequelize');
+const { Op } = require('sequelize');
 
 app.use(bodyParser.json())
 
@@ -23,7 +23,7 @@ app.get("/:id", async (req, res) => {
     let result = await reactions.findOne({
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });
@@ -39,7 +39,7 @@ app.delete("/:id", async (req, res) => {
     let result = await reactions.destroy({
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });

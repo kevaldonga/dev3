@@ -1,7 +1,7 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { bookmarkPostsRelation } = require('../models');
-const { Ops } = require('sequelize');
+const { Op } = require('sequelize');
 
 app.use(bodyParser.json());
 
@@ -22,7 +22,7 @@ app.get("/:profileId", async (req, res) => {
     let result = await bookmarkPostsRelation.findAll({
         where: {
             "profileId": {
-                [Ops.eq]: profileId,
+                [Op.eq]: profileId,
             },
         },
     });
@@ -38,7 +38,7 @@ app.delete("/:id", async (req, res) => {
     let result = await bookmarkPostsRelation.destroy({
         where: {
             "id": {
-                [Ops.eq]: id,
+                [Op.eq]: id,
             },
         },
     });

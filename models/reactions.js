@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   reactions.init({
-    reaction: { type: DataTypes.CHAR, allowNull: false },
+    reaction: { type: DataTypes.CHAR(2), allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,
