@@ -1,4 +1,8 @@
-Routes Documentation Format: 
+## TODOs after cloning repo
+        1. change collation of reaction field in reactions table to utf16_bin
+
+
+## Routes Documentation Format
         /*
         * /resource - POST - create
         * /resource - GET - List
