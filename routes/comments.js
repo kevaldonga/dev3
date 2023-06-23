@@ -2,13 +2,15 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { comments, reactionOnComments } = require('../models');
 const { Op } = require('sequelize');
+const { checkjwt, authorizedForProfileId } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json());
 
 /* 
-* / - CREATE - create comment
+* /:profileId - CREATE - create comment
+* @check check active jwt, check if jwt matches request uri
 */
-app.post("/", async (req, res) => {
+app.post("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
     let result = comments.create(req.body);
 
     res.send(result ? "comment created successfully!!" : "error occured");
@@ -16,8 +18,9 @@ app.post("/", async (req, res) => {
 
 /* 
 * /:id - GET - get comment by id
+* @check check active jwt
 */
-app.get("/:id", async (req, res) => {
+app.get("/:id", checkjwt, async (req, res) => {
     const id = req.params.id;
     let result = await comments.findOne({
         where: {
@@ -30,9 +33,10 @@ app.get("/:id", async (req, res) => {
 });
 
 /* 
-* /:id - POST - update comment by id
+* /:id/:profileId - POST - update comment by id
+* @check check active jwt, check if jwt matches request uri
 */
-app.post("/:id", async (req, res) => {
+app.post("/:id/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
     const id = req.params.id;
     let result = await comments.update(req.body, {
         where: {
@@ -45,9 +49,10 @@ app.post("/:id", async (req, res) => {
 });
 
 /* 
-* /:id - DELETE - delete comment by id
+* /:id/:profileId - DELETE - delete comment by id
+* @check check active jwt, check if jwt matches request uri
 */
-app.post("/:id", async (req, res) => {
+app.post("/:id/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
     const id = req.params.id;
     let result = await comments.destroy({
         where: {
@@ -62,8 +67,9 @@ app.post("/:id", async (req, res) => {
 
 /*
 * /:commentId/reactions - GET - get all reactions of comment
+* @check check active jwt
 */
-app.get("/:commentId/reactions", async (req, res) => {
+app.get("/:commentId/reactions", checkjwt, async (req, res) => {
     const commentId = req.params.commentId;
     let result = await reactionOnComments.findAll({
         where: {
@@ -78,8 +84,9 @@ app.get("/:commentId/reactions", async (req, res) => {
 
 /*
 * /:commentId/:reactionId - DELETE - delete reaction on comment
+* @check check active jwt
 */
-app.delete("/:commentId/:reactionId", async (req, res) => {
+app.delete("/:commentId/:reactionId", checkjwt, async (req, res) => {
     const commentId = req.params.commentId;
     const reactionId = req.params.reactionId;
     let result = await reactionOnComments.findAll({

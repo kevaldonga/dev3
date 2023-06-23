@@ -2,13 +2,15 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { profiles, tagUserRelation, userRelationCount } = require('../models');
 const { Op } = require('sequelize');
+const { checkjwt, authorized, authorizedForProfileId } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json());
 
 /*
- * /:uuid - GET - get user profile
+* /:profileId - GET - get user profile
+* @check check active jwt
 */
-app.get('/:uuid', async (req, res) => {
+app.get('/:profileId', checkjwt, authorizedForProfileId, async (req, res) => {
     const uuid = req.params.uuid;
     let result = await profiles.findOne({
         where: {
@@ -33,8 +35,9 @@ app.post('/', async (req, res) => {
 
 /*
 * /:uuid - PUT - update a user profile
+* @check check active jwt, check if jwt matches request uri
 */
-app.put('/:uuid', async (req, res) => {
+app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     const uuid = req.params.uuid;
     let result = await profiles.update(req.body, {
         where: {
@@ -49,8 +52,9 @@ app.put('/:uuid', async (req, res) => {
 
 /*
 * /:uuid - DELETE - delete a user profile by given uuid
+* @check check active jwt, check if jwt matches request uri
 */
-app.delete('/:uuid', async (req, res) => {
+app.delete('/:uuid', checkjwt, authorized, async (req, res) => {
     const uuid = req.params.uuid;
     result = await profiles.destroy({
         where: {
@@ -65,8 +69,9 @@ app.delete('/:uuid', async (req, res) => {
 
 /*
 * /:profileId/tags - GET - get all tags of profile
+* @check check active jwt
 */
-app.get("/:profileId/tags", async (req, res) => {
+app.get("/:profileId/tags", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileId = req.params.profileId;
 
     let result = await tagUserRelation.findAll({
@@ -81,9 +86,10 @@ app.get("/:profileId/tags", async (req, res) => {
 });
 
 /* 
-* /:uuid/:tagId - DELETE - delete tag inside profile
+* /:profileId/:tagId - DELETE - delete tag inside profile
+* @check check active jwt, check if jwt matches request uri
 */
-app.delete("/:uuid/:tagId", async (req, res) => {
+app.delete("/:profileId/:tagId", checkjwt, authorizedForProfileId, async (req, res) => {
     const uuid = req.params.uuid;
     const tagId = req.params.tagId;
 

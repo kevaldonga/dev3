@@ -3,7 +3,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    queryInterface.addColumn('profiles', 'isActive', {
+    queryInterface.addColumn('users', 'isActive', {
       type: Sequelize.BOOLEAN,
       allowNull: false,
       defaultValue: false,
@@ -11,6 +11,6 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    queryInterface.removeColumn('profiles', 'isActive');
+    queryInterface.removeColumn('users', 'isActive');
   }
 };

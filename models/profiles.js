@@ -21,14 +21,6 @@ module.exports = (sequelize, DataTypes) => {
       });
       this.hasMany(models.posts);
     }
-
-    onlyActive() {
-      return this.findAll({
-        where: {
-          isActive: 1
-        }
-      });
-    }
   }
   profiles.init({
     userId: { type: DataTypes.INTEGER, unique: true },

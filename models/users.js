@@ -1,6 +1,7 @@
 'use strict';
+const bcrypt = require('bcrypt');
 const {
-  Model, Sequelize
+  Model, Sequelize, UUIDV1
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class users extends Model {
@@ -14,13 +15,18 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   users.init({
-    username: DataTypes.STRING,
-    password: DataTypes.STRING,
+    username: { type: DataTypes.STRING, allowNull: false, validate: { len: [5, 60] }, unique: true },
+    password: { type: DataTypes.STRING, allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
-    token: DataTypes.UUID
+    token: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV1 }
   }, {
     sequelize,
     modelName: 'users',
   });
+
+  users.beforeCreate('password', async (users, options) => {
+    users.password = await bcrypt.hash(users.password, 15);
+  });
+
   return users;
 };

@@ -2,13 +2,15 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { friendsRelation, profiles } = require('../models');
 const { Op } = require('sequelize');
+const { checkjwt, authorizedForProfileId } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json());
 
 /* 
 * /:profileId/followers - GET - get all followers of user
+* @check check active jwt
 */
-app.get("/:profileId/followers", async (req, res) => {
+app.get("/:profileId/followers", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileId = req.params.profileId;
     let result = await friendsRelation.findAll({
         where: {
@@ -21,8 +23,9 @@ app.get("/:profileId/followers", async (req, res) => {
 
 /* 
 * /:profileId/following - GET - get all followings of user
+* @check check active jwt
 */
-app.get("/:profileId/followings", async (req, res) => {
+app.get("/:profileId/followings", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileId = req.params.profileId;
 
     let result = await friendsRelation.findAll({
@@ -38,8 +41,9 @@ app.get("/:profileId/followings", async (req, res) => {
 
 /* 
 * /:profileId/relations - POST - update on user follows other user
+* @check check active jwt
 */
-app.post("/:profileId/relations", async (req, res) => {
+app.post("/:profileId/relations", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileId = req.params.profileId;
 
     const followerProfileId = req.body.followerProfileId;
@@ -75,8 +79,9 @@ app.post("/:profileId/relations", async (req, res) => {
 
 /* 
 * /:profileId/relations - DELETE - delete on user follows other user
+* @check check active jwt
 */
-app.delete("/:profileId/relations", async (req, res) => {
+app.delete("/:profileId/relations", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileid = req.params.profileId;
 
     const followerProfileId = req.body.follower;

@@ -2,13 +2,17 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { users } = require('../models');
 const { Op } = require('sequelize');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const { checkjwt, authorized, checkActiveUUID } = require('../middleware/jwtcheck');
+const JWTPRIVATEKEY = 'FASTSPEED';
 
 app.use(bodyParser.json());
 
 /*
- * /:uuid - GET - get user
+* /:uuid - GET - get user
 */
-app.get('/:uuid', async (req, res) => {
+app.get('/:uuid', checkjwt, async (req, res) => {
     const uuid = req.params.uuid;
     let result = await users.findOne({
         where: {
@@ -29,10 +33,36 @@ app.post('/', async (req, res) => {
 });
 
 /*
-* /:uuid - PUT - update a user
+* /login - POST - login user
 */
-app.put('/:uuid', async (req, res) => {
+app.post('/login', async (req, res) => {
+    result = await users.findOne({
+        where: {
+            "username": {
+                [Op.eq]: req.body.username,
+            },
+        },
+        include: 'profiles',
+    });
+    checked = await bcrypt.compare(req.body.password, result.password);
+    if (checked) {
+        let userObj = { auth: result.uuid, auth2: result.profiles.uuid, _sa: result.profiles.id };
+        let jt = jwt.sign(userObj, JWTPRIVATEKEY, { 'expiresIn': '30D' });
+        res.send(jt);
+    } else {
+        res.status(403).send('Invalid');
+    }
+});
+
+/*
+* /:uuid - PUT - update a user
+* @check check active jwt, check if jwt matches request uri
+*/
+app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     const uuid = req.params.uuid;
+    if (req.body.password !== undefined) {
+        res.status(401).send('Cannot change password from this endpoint');
+    }
     result = await users.update(req.body, {
         where: {
             "uuid": {
@@ -47,7 +77,7 @@ app.put('/:uuid', async (req, res) => {
 /*
 * /:uuid - DELETE - delete a user by given uuid
 */
-app.delete('/:uuid', async (req, res) => {
+app.delete('/:uuid', checkjwt, authorized, async (req, res) => {
     const uuid = req.params.uuid;
     result = await users.destroy({
         where: {
