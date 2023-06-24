@@ -7,13 +7,13 @@ const { checkjwt, authorizedForProfileId } = require('../middleware/jwtcheck');
 app.use(bodyParser.json());
 
 /*
-* /:postId - GET - get category(s) of post by postId 
+* /:postId - GET - get category(s) of a post by postId 
 * @check check active jwt
 */
 app.get("/:postId", checkjwt, async (req, res) => {
     const postId = req.params.postId;
 
-    let result = await categorOfPost.findAll({
+    result = await categorOfPost.findAll({
         where: {
             "postId": {
                 [Op.eq]: postId,
@@ -25,16 +25,16 @@ app.get("/:postId", checkjwt, async (req, res) => {
 });
 
 /* 
-* /:id/:uuid - DELETE - remove category of post by id
+* /:categoryId/profile/:profileId - DELETE - remove category of post by id
 * @check check active jwt, check if jwt matches request uri
 */
-app.delete("/:id/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const id = req.params.id;
+app.delete("/:categoryId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const categoryId = req.params.categoryId;
 
-    let result = await categorOfPost.destroy({
+    result = await categorOfPost.destroy({
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: categoryId,
             },
         },
     });
@@ -47,7 +47,7 @@ app.delete("/:id/:profileId", checkjwt, authorizedForProfileId, async (req, res)
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    let result = await categorOfPost.create(req.body);
+    result = await categorOfPost.create(req.body);
 
     res.send(result ? "category created successfully !!" : "error occured");
 });
@@ -56,13 +56,13 @@ app.post("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
 * /:id/all - GET - get all post of category
 * @check check active jwt
 */
-app.post("/:id/all", checkjwt, async (req, res) => {
-    const id = req.params.id;
+app.post("/:postId/all", checkjwt, async (req, res) => {
+    const postId = req.params.postId;
 
-    let result = await categorOfPost.findAll({
+    result = await categorOfPost.findAll({
         where: {
-            "id": {
-                [Op.eq]: id,
+            "postId": {
+                [Op.eq]: postId,
             },
         },
     });

@@ -7,25 +7,25 @@ const { checkjwt, authorizedForProfileId } = require('../middleware/jwtcheck');
 app.use(bodyParser.json());
 
 /* 
-* /:profileId - CREATE - create comment
+* /:profileId - CREATE - create a comment
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    let result = comments.create(req.body);
+    result = await comments.create(req.body);
 
     res.send(result ? "comment created successfully!!" : "error occured");
 });
 
 /* 
-* /:id - GET - get comment by id
+* /:id - GET - get a comment by id
 * @check check active jwt
 */
-app.get("/:id", checkjwt, async (req, res) => {
-    const id = req.params.id;
-    let result = await comments.findOne({
+app.get("/:commentId", checkjwt, async (req, res) => {
+    const commentId = req.params.commentId;
+    result = await comments.findOne({
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: commentId,
             },
         },
     });
@@ -33,15 +33,15 @@ app.get("/:id", checkjwt, async (req, res) => {
 });
 
 /* 
-* /:id/:profileId - POST - update comment by id
+* /:commentId/profile/:profileId - POST - update a comment by id
 * @check check active jwt, check if jwt matches request uri
 */
-app.post("/:id/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const id = req.params.id;
-    let result = await comments.update(req.body, {
+app.post("/:commentId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const commentId = req.params.id;
+    result = await comments.update(req.body, {
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: commentId,
             },
         },
     });
@@ -49,15 +49,15 @@ app.post("/:id/:profileId", checkjwt, authorizedForProfileId, async (req, res) =
 });
 
 /* 
-* /:id/:profileId - DELETE - delete comment by id
+* /:commentId/profile/:profileId - DELETE - delete a comment by id
 * @check check active jwt, check if jwt matches request uri
 */
-app.post("/:id/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const id = req.params.id;
-    let result = await comments.destroy({
+app.post("/:commentId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const commentId = req.params.commentId;
+    result = await comments.destroy({
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: commentId,
             },
         },
     });
@@ -71,7 +71,7 @@ app.post("/:id/:profileId", checkjwt, authorizedForProfileId, async (req, res) =
 */
 app.get("/:commentId/reactions", checkjwt, async (req, res) => {
     const commentId = req.params.commentId;
-    let result = await reactionOnComments.findAll({
+    result = await reactionOnComments.findAll({
         where: {
             "commentId": {
                 [Op.eq]: commentId,
@@ -83,13 +83,13 @@ app.get("/:commentId/reactions", checkjwt, async (req, res) => {
 });
 
 /*
-* /:commentId/:reactionId - DELETE - delete reaction on comment
+* /:commentId/reaction/:reactionId - DELETE - delete a reaction on a comment
 * @check check active jwt
 */
-app.delete("/:commentId/:reactionId", checkjwt, async (req, res) => {
+app.delete("/:commentId/reaction/:reactionId", checkjwt, async (req, res) => {
     const commentId = req.params.commentId;
     const reactionId = req.params.reactionId;
-    let result = await reactionOnComments.findAll({
+    result = await reactionOnComments.findAll({
         where: {
             "commentId": {
                 [Op.eq]: commentId,

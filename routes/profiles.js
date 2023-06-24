@@ -7,15 +7,15 @@ const { checkjwt, authorized, authorizedForProfileId } = require('../middleware/
 app.use(bodyParser.json());
 
 /*
-* /:profileId - GET - get user profile
+* /:profileId - GET - get a user profile
 * @check check active jwt
 */
 app.get('/:profileId', checkjwt, authorizedForProfileId, async (req, res) => {
-    const uuid = req.params.uuid;
+    const profileId = req.params.profileId;
     let result = await profiles.findOne({
         where: {
-            "uuid": {
-                [Op.eq]: uuid,
+            "id": {
+                [Op.eq]: profileId,
             },
         },
     });
@@ -26,10 +26,7 @@ app.get('/:profileId', checkjwt, authorizedForProfileId, async (req, res) => {
 * / - POST - create a user profile
 */
 app.post('/', async (req, res) => {
-    result = await profiles.create(req.body).then(async (user) => {
-        const id = user.id;
-        await userRelationCount.create({ "profileId": id });
-    });
+    result = await profiles.create(req.body);
     res.send(result ? "created successfully!!" : "error occured");
 });
 
@@ -86,10 +83,10 @@ app.get("/:profileId/tags", checkjwt, authorizedForProfileId, async (req, res) =
 });
 
 /* 
-* /:profileId/:tagId - DELETE - delete tag inside profile
+* /:profileId/tag/:tagId - DELETE - delete tag inside profile
 * @check check active jwt, check if jwt matches request uri
 */
-app.delete("/:profileId/:tagId", checkjwt, authorizedForProfileId, async (req, res) => {
+app.delete("/:profileId/tag/:tagId", checkjwt, authorizedForProfileId, async (req, res) => {
     const uuid = req.params.uuid;
     const tagId = req.params.tagId;
 

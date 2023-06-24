@@ -7,12 +7,12 @@ const { checkjwt, authorizedForProfileId } = require('../middleware/jwtcheck');
 app.use(bodyParser.json());
 
 /* 
-* /:profileId/followers - GET - get all followers of user
+* /:profileId/followers - GET - get all followers of a user
 * @check check active jwt
 */
 app.get("/:profileId/followers", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileId = req.params.profileId;
-    let result = await friendsRelation.findAll({
+    result = await friendsRelation.findAll({
         where: {
             "beingFollowedProfileId": profileId,
         },
@@ -22,13 +22,13 @@ app.get("/:profileId/followers", checkjwt, authorizedForProfileId, async (req, r
 });
 
 /* 
-* /:profileId/following - GET - get all followings of user
+* /:profileId/following - GET - get all followings of a user
 * @check check active jwt
 */
 app.get("/:profileId/followings", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileId = req.params.profileId;
 
-    let result = await friendsRelation.findAll({
+    result = await friendsRelation.findAll({
         where: {
             "profileId": {
                 [Op.eq]: profileId,
@@ -40,28 +40,26 @@ app.get("/:profileId/followings", checkjwt, authorizedForProfileId, async (req, 
 });
 
 /* 
-* /:profileId/relations - POST - update on user follows other user
+* /:followerProfileId/follows/:beingFollowedProfileId - POST - user follows other user
 * @check check active jwt
 */
-app.post("/:profileId/relations", checkjwt, authorizedForProfileId, async (req, res) => {
-    const profileId = req.params.profileId;
-
-    const followerProfileId = req.body.followerProfileId;
-    const beingFollowedProfileId = req.body.beingFollowedProfileId;
+app.post("/:followerProfileId/follows/:beingFollowedProfileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const followerProfileId = req.params.followerProfileId;
+    const beingFollowedProfileId = req.params.beingFollowedProfileId;
 
     // update friendsRelation table
-    let result = await friendsRelation.create({
+    result = await friendsRelation.create({
         "beingFollowedProfileId": beingFollowedProfileId,
         "followerProfileId": followerProfileId,
     });
 
-    res.send(result);
+    res.send(result ? "operation successful!!" : "error occured");
 
-    // increment  following count in profile
+    // increment following count in a profile
     await profiles.increment("followings", {
         where: {
             "profileId": {
-                [Op.eq]: profileId,
+                [Op.eq]: followerProfileId,
             },
         }
     });
@@ -78,31 +76,31 @@ app.post("/:profileId/relations", checkjwt, authorizedForProfileId, async (req, 
 });
 
 /* 
-* /:profileId/relations - DELETE - delete on user follows other user
+* /:followerProfileId/follows/:beingFollowedProfileId - DELETE - user unfollows other user
 * @check check active jwt
 */
-app.delete("/:profileId/relations", checkjwt, authorizedForProfileId, async (req, res) => {
-    const profileid = req.params.profileId;
-
-    const followerProfileId = req.body.follower;
-    const beingFollowedProfileId = req.body.beingFollowedProfileId;
+app.delete("/:followerProfileId/follows/:beingFollowedProfileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const followerProfileId = req.params.followerProfileId;
+    const beingFollowedProfileId = req.params.beingFollowedProfileId;
 
     // update friendsRelation table
-    await friendsRelation.destroy({
+    result = await friendsRelation.destroy({
         "followerProfileId": followerProfileId,
         "beingFollowedProfileId": beingFollowedProfileId,
     });
 
-    // decrement following count in profile
+    res.send(result ? "operation successful!!" : "error occured");
+
+    // decrement following count in a profile
     await profiles.decrement("followings", {
         by: 1, where: {
             "profileId": {
-                [Op.eq]: profileid,
+                [Op.eq]: followerProfileId,
             },
         }
     });
 
-    // decrement follower count in other profile
+    // decrement follower count in other a profile
     await profiles.decrement("followers", {
         by: 1, where: {
             "profileId": {

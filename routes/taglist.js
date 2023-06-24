@@ -2,12 +2,12 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { tagList } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorized, checkActiveUUID } = require('../middleware/jwtcheck');
+const { checkjwt, authorized, authorizedForProfileId } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json())
 
 /* 
-* /:uuid - POST - create tag
+* /:uuid - POST - create a tag
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:uuid", checkjwt, authorized, async (req, res) => {
@@ -17,15 +17,15 @@ app.post("/:uuid", checkjwt, authorized, async (req, res) => {
 });
 
 /* 
-* /:id - DELETE - delete tag
+* /:tagId/profile/profileId - DELETE - delete a tag
 * @check check active jwt
 */
-app.delete("/:id/:uuid", checkjwt, authorized, async (req, res) => {
-    const id = req.params.id;
+app.delete("/:tagId/profile/profileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const tagId = req.params.tagId;
     let result = await tagList.destroy(req.body, {
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: tagId,
             },
         },
     });
@@ -34,15 +34,15 @@ app.delete("/:id/:uuid", checkjwt, authorized, async (req, res) => {
 });
 
 /* 
-* /:id - GET - get tag by id
+* /:id - GET - get a tag by id
 * @check check active jwt
 */
-app.get("/:id", checkjwt, async (req, res) => {
-    const id = req.params.id;
+app.get("/:tagId", checkjwt, async (req, res) => {
+    const tagId = req.params.tagId;
     let result = await tagList.findOne({
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: tagId,
             },
         },
     });

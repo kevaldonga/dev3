@@ -20,12 +20,12 @@ app.post("/:uuid", checkjwt, authorized, async (req, res) => {
 * /:id - GET - get post by its id
 * @check check active jwt
 */
-app.get("/:id", checkjwt, async (req, res) => {
-    const id = req.params.id;
+app.get("/:postId", checkjwt, async (req, res) => {
+    const postId = req.params.postId;
     let result = await posts.findOne({
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: postId,
             },
         },
     });
@@ -33,15 +33,15 @@ app.get("/:id", checkjwt, async (req, res) => {
 });
 
 /*
-* /:id/:uuid - POST - update the post
+* /:postId/profile/:profileId - POST - update the post
 * @check check active jwt
 */
-app.post("/:id/:uuid", checkjwt, authorized, async (req, res) => {
-    const id = req.params.id;
+app.post("/:postId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const postId = req.params.postId;
     let result = await posts.update(req.body, {
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: postId,
             },
         },
     });
@@ -50,15 +50,15 @@ app.post("/:id/:uuid", checkjwt, authorized, async (req, res) => {
 });
 
 /*
-* /:id/:uuid - DELETE - delete the post
+* /:postId/profile/:profileId - DELETE - delete the post
 * @check check active jwt
 */
-app.delete("/:id/:uuid", checkjwt, authorized, async (req, res) => {
-    const id = req.params.id;
+app.delete("/:postId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const postId = req.params.postId;
     let result = await posts.destroy({
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: postId,
             },
         },
     });
@@ -101,10 +101,10 @@ app.get("/:postId/comments", checkjwt, async (req, res) => {
 });
 
 /* 
-* /:postId/:reactionId/:uuid - DELETE - delete reaction on post
+* /:postId/:reactionId/profile/:profileId - DELETE - delete reaction on post
 * @check check active jwt
 */
-app.delete("/:postId/:reactionId/:uuid", checkjwt, authorized, async (req, res) => {
+app.delete("/:postId/reaction/:reactionId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
     const postId = req.params.postId;
     const reactionId = req.params.reactionId;
 
@@ -159,10 +159,10 @@ app.get("/:tagId/posts", checkjwt, async (req, res) => {
 });
 
 /* 
-* /:postId/:tagId/:uuid - DELETE - delete tag in post
+* /:postId/tag/:tagId/profile/profileId - DELETE - delete tag in post
 * @check check active jwt
 */
-app.delete("/:postId/:tagId/:uuid", checkjwt, authorized, async (req, res) => {
+app.delete("/:postId/tag/:tagId/profile/profileId", checkjwt, authorizedForProfileId, async (req, res) => {
     const postId = req.params.postId;
     const tagId = req.params.tagId;
 
@@ -211,10 +211,10 @@ app.get("/:postId/bookmarks/count", checkjwt, async (req, res) => {
 });
 
 /* 
-* /:profileId/:postId/:isBookmarked - check if post is bookmarked or not
+* /:profileId/isBookmarked/:postId - check if post is bookmarked or not
 * @check check active jwt
 */
-app.get("/:profileId/:postId/isBookmarked", checkjwt, authorizedForProfileId, async (req, res) => {
+app.get("/:profileId/isBookmarked/:postId", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileId = req.params.profileId;
     const postId = req.params.postId;
 

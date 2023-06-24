@@ -10,7 +10,7 @@ const JWTPRIVATEKEY = 'FASTSPEED';
 app.use(bodyParser.json());
 
 /*
-* /:uuid - GET - get user
+* /:uuid - GET - get a user
 */
 app.get('/:uuid', checkjwt, async (req, res) => {
     const uuid = req.params.uuid;

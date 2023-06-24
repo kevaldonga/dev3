@@ -7,12 +7,12 @@ const { checkjwt, authorizedForProfileId } = require('../middleware/jwtcheck');
 app.use(bodyParser.json());
 
 /* 
-* /:uuid - POST - add post to bookmark
+* /:uuid - POST - add a post to bookmark
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
 
-    let result = await bookmarkPostsRelation.create(req.body);
+    result = await bookmarkPostsRelation.create(req.body);
 
     res.send(result ? "post bookmarked!!" : "error occured");
 });
@@ -23,7 +23,7 @@ app.post("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
 */
 app.get("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileId = req.params.profileId;
-    let result = await bookmarkPostsRelation.findAll({
+    result = await bookmarkPostsRelation.findAll({
         where: {
             "profileId": {
                 [Op.eq]: profileId,
@@ -35,12 +35,12 @@ app.get("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
 });
 
 /* 
-* /:id/:uuid - DELETE - remove bookmark on post by given id
+* /:bookmarkId/profile/:profileId - DELETE - remove a bookmark on a post by given id
 * @check check active jwt, check if jwt matches request uri
 */
-app.delete("/:id/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
+app.delete("/:bookmarkId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
     const id = req.params.id;
-    let result = await bookmarkPostsRelation.destroy({
+    result = await bookmarkPostsRelation.destroy({
         where: {
             "id": {
                 [Op.eq]: id,

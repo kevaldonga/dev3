@@ -2,12 +2,12 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { reactions } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorized, checkActiveUUID } = require('../middleware/jwtcheck');
+const { checkjwt, authorized, authorizedForProfileId } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json())
 
 /* 
-* /:uuid - POST - create reaction
+* /:uuid - POST - create a reaction
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:uuid", checkjwt, authorized, async (req, res) => {
@@ -17,16 +17,16 @@ app.post("/:uuid", checkjwt, authorized, async (req, res) => {
 });
 
 /* 
-* /:id - GET - get reaction by id
+* /:id - GET - get a reaction by id
 * @check check active jwt
 */
-app.get("/:id", checkjwt, async (req, res) => {
-    const id = req.params.id;
+app.get("/:reactionId", checkjwt, async (req, res) => {
+    const reactionId = req.params.reactionId;
 
     let result = await reactions.findOne({
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: reactionId,
             },
         },
     });
@@ -34,16 +34,16 @@ app.get("/:id", checkjwt, async (req, res) => {
 });
 
 /*
-* /:id/:uuid - DELETE - delete reaction
+* /:reactionId/profile/:profileId - DELETE - delete a reaction
 * @check check active jwt
 */
-app.delete("/:id/:uuid", checkjwt, authorized, async (req, res) => {
-    const id = req.params.id;
+app.delete("/:reactionId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const reactionId = req.params.reactionId;
 
     let result = await reactions.destroy({
         where: {
             "id": {
-                [Op.eq]: id,
+                [Op.eq]: reactionId,
             },
         },
     });
