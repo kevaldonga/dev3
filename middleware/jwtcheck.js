@@ -1,3 +1,5 @@
+const jwt = require('jsonwebtoken');
+
 const JWTPRIVATEKEY = 'FASTSPEED';
 
 const checkjwt = (req, res, next) => {
@@ -30,4 +32,4 @@ const checkActiveUUID = (req, res, next) => {
     next();
 }
 
-module.exports = checkjwt, authorized, authorizedForProfileId, checkActiveUUID;
+module.exports = { checkjwt: checkjwt, authorized: authorized, authorizedForProfileId: authorizedForProfileId, checkActiveUUID: checkActiveUUID };

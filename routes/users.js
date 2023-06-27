@@ -5,6 +5,7 @@ const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { checkjwt, authorized, checkActiveUUID } = require('../middleware/jwtcheck');
+const { validatePassword } = require('./validations/user');
 const JWTPRIVATEKEY = 'FASTSPEED';
 
 app.use(bodyParser.json());
@@ -74,6 +75,23 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
 });
 
 
+/* 
+* /:uuid/changePassword - PUT - change password
+*/
+app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
+    if (!validatePassword(req.body.password)) {
+        res.status(400).end("invalid format of password");
+        return;
+    }
+    userdetails = await users.updatePassword(req.body.password, req.params.uuid);
+    userinfo = {
+        'auth': userdetails.uuid,
+        'auth2': req.userinfo.auth2,
+        '_sa': req.userinfo._sa,
+    };
+    res.send(jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' }));
+});
+
 /*
 * /:uuid - DELETE - delete a user by given uuid
 */
@@ -88,17 +106,5 @@ app.delete('/:uuid', checkjwt, authorized, async (req, res) => {
     });
     res.send(result ? "deleted successfully!!" : "error occured");
 });
-
-/*
-* /resource - POST - create
-* /resource - GET - List
-* /parent-resource/:parentresourceId/:childresource - POST - Create - params
-* /resource/:reference - GET - findOne - single collection
-* /resource/:reference - PUT - update
-* /resource/:reference - DELETE - delete
-* /resource/:reference - POST - Nothing
-
-* PATCH - PUT
-*/
 
 module.exports = app;

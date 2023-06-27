@@ -1,7 +1,7 @@
 'use strict';
 const bcrypt = require('bcrypt');
 const {
-  Model, Sequelize, UUIDV1
+  Model, Sequelize, Op
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class users extends Model {
@@ -24,9 +24,20 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'users',
   });
 
-  users.beforeCreate('password', async (users, options) => {
+  users.beforeCreate('password', async (users, _) => {
     users.password = await bcrypt.hash(users.password, 15);
   });
 
+  users.updatePassword = async (password, uuid) => {
+    const hashedpassword = await bcrypt.hash(password, 15);
+    let newusr = await users.update({ "password": hashedpassword, "uuid": Sequelize.UUIDV4.toString() }, {
+      where: {
+        "uuid": {
+          [Op.eq]: uuid,
+        }
+      }
+    });
+    return newusr;
+  }
   return users;
 };
