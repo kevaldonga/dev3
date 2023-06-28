@@ -6,6 +6,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { checkjwt, authorized, checkActiveUUID } = require('../middleware/jwtcheck');
 const { validatePassword } = require('./validations/user');
+const { addUUID, removeUUID } = require('../middleware/uuidfileop');
 const JWTPRIVATEKEY = 'FASTSPEED';
 
 app.use(bodyParser.json());
@@ -49,6 +50,7 @@ app.post('/login', async (req, res) => {
     if (checked) {
         let userObj = { auth: result.uuid, auth2: result.profiles.uuid, _sa: result.profiles.id };
         let jt = jwt.sign(userObj, JWTPRIVATEKEY, { 'expiresIn': '30D' });
+        addUUID(result.uuid);
         res.send(jt);
     } else {
         res.status(403).send('Invalid');
@@ -63,6 +65,9 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     const uuid = req.params.uuid;
     if (req.body.password !== undefined) {
         res.status(401).send('Cannot change password from this endpoint');
+    }
+    if (req.body.uuid !== undefined) {
+        res.status(403).send('Cannot change uuid');
     }
     result = await users.update(req.body, {
         where: {
@@ -89,13 +94,16 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
         'auth2': req.userinfo.auth2,
         '_sa': req.userinfo._sa,
     };
-    res.send(jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' }));
+    addUUID(userdetails.uuid);
+    removeUUID(req.params.uuid);
+    token = jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' });
+    res.send(token);
 });
 
 /*
 * /:uuid - DELETE - delete a user by given uuid
 */
-app.delete('/:uuid', checkjwt, authorized, async (req, res) => {
+app.delete('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     const uuid = req.params.uuid;
     result = await users.destroy({
         where: {
@@ -104,6 +112,7 @@ app.delete('/:uuid', checkjwt, authorized, async (req, res) => {
             },
         },
     });
+    removeUUID(uuid);
     res.send(result ? "deleted successfully!!" : "error occured");
 });
 

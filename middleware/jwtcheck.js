@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const fs = require('fs');
+const readline = require('readline');
 
 const JWTPRIVATEKEY = 'FASTSPEED';
 
@@ -29,7 +31,24 @@ const authorizedForProfileId = (req, res, next) => {
 }
 
 const checkActiveUUID = (req, res, next) => {
-    next();
+    const myuuid = req.params.uuid;
+
+    const fileStream = fs.createReadStream(`${__dirname}/uuids.txt`);
+    const rl = readline.createInterface({
+        input: fileStream,
+        crlfDelay: Infinity
+    });
+
+    rl.on('line', (line) => {
+        if (line.includes(myuuid)) {
+            rl.removeAllListeners();
+            next();
+        }
+    });
+
+    rl.on('close', () => {
+        res.status(403).send('Access denied');
+    });
 }
 
 module.exports = { checkjwt: checkjwt, authorized: authorized, authorizedForProfileId: authorizedForProfileId, checkActiveUUID: checkActiveUUID };
