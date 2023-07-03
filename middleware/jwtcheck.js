@@ -30,6 +30,14 @@ const authorizedForProfileId = (req, res, next) => {
     }
 }
 
+const authorizedForProfileUUID = (req, res, next) => {
+    if (req.params.profileUUID == req.userinfo.auth2) {
+        next();
+    } else {
+        res.status(403).send('Access denied');
+    }
+}
+
 const addProfileId = (req, res, next) => {
     req.body.profileId = req.userinfo._sa;
     next();
@@ -56,4 +64,11 @@ const checkActiveUUID = (req, res, next) => {
     });
 }
 
-module.exports = { checkjwt: checkjwt, authorized: authorized, addProfileId: addProfileId, authorizedForProfileId: authorizedForProfileId, checkActiveUUID: checkActiveUUID };
+module.exports = {
+    checkjwt: checkjwt,
+    authorized: authorized,
+    addProfileId: addProfileId,
+    authorizedForProfileId: authorizedForProfileId,
+    checkActiveUUID: checkActiveUUID,
+    authorizedForProfileUUID: authorizedForProfileUUID,
+};

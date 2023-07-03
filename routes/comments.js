@@ -7,7 +7,7 @@ const { checkjwt, authorizedForProfileId, addProfileId } = require('../middlewar
 app.use(bodyParser.json());
 
 /* 
-* /:profileId - CREATE - create a comment
+* /:profileId - POST - create a comment
 * @check check active jwt, check if jwt matches request uri, get profileId from payload and add it req.nody
 */
 app.post("/:profileId", checkjwt, authorizedForProfileId, addProfileId, async (req, res) => {
@@ -15,7 +15,7 @@ app.post("/:profileId", checkjwt, authorizedForProfileId, addProfileId, async (r
 
     res.send(result ? "comment created successfully!!" : "error occured");
 });
-
+p
 /* 
 * /:id - GET - get a comment by id
 * @check check active jwt
@@ -67,16 +67,19 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
 
 /*
 * /:commentId/reactions - GET - get all reactions of comment
-* @check check active jwt
 */
-app.get("/:commentId/reactions", checkjwt, async (req, res) => {
+app.get("/:commentId/reactions", async (req, res) => {
     const commentId = req.params.commentId;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
     result = await reactionOnComments.findAll({
         where: {
             "commentId": {
                 [Op.eq]: commentId,
             },
         },
+        limit: 10,
+        offset: offset,
     });
 
     res.send(result);

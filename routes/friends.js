@@ -2,50 +2,92 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { friendsRelation, profiles } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorizedForProfileId } = require('../middleware/jwtcheck');
+const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json());
 
 /* 
-* /:profileId/followers - GET - get all followers of a user
-* @check check active jwt
+* /:profileUUID/followers - GET - get all followers of a user
 */
-app.get("/:profileId/followers", checkjwt, async (req, res) => {
-    const profileId = req.params.profileId;
+app.get("/:profileUUID/followers", async (req, res) => {
+    const profileUUID = req.params.profileUUID;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
+    p = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+    const profileId = p.id;
     result = await friendsRelation.findAll({
         where: {
             "beingFollowedProfileId": profileId,
         },
+        limit: 10,
+        offset: offset,
     });
 
     res.send(result);
 });
 
 /* 
-* /:profileId/following - GET - get all followings of a user
-* @check check active jwt
+* /:profileUUID/following - GET - get all followings of a user
 */
-app.get("/:profileId/followings", checkjwt, async (req, res) => {
-    const profileId = req.params.profileId;
-
+app.get("/:profileUUID/followings", async (req, res) => {
+    const profileUUID = req.params.profileUUID;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    p = await profiles.findOne({
+        where: {
+            uuid: profileUUID
+        },
+        attributes: ['id']
+    });
+    const profileId = p.id;
     result = await friendsRelation.findAll({
         where: {
-            "profileId": {
+            "followerProfileId": {
                 [Op.eq]: profileId,
             },
         },
+        limit: 10,
+        offset: offset,
     });
 
     res.send(result);
 });
 
 /* 
-* /:profileId/follows/:beingFollowedProfileId - POST - user follows other user
-* @check check active jwt
+* /:profileUUID/follows/:beingFollowedProfileUUID - POST - user follows other user
+* @check check active jwt, check if profile uuid matches
 */
-app.post("/:profileId/follows/:beingFollowedProfileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const profileId = req.params.profileId;
-    const beingFollowedProfileId = req.params.beingFollowedProfileId;
+app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const profileUUID = req.params.profileUUID;
+    const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
+
+    p = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const profileId = p.id;
+
+    p = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: beingFollowedProfileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const beingFollowedProfileId = p.id;
 
     // update friendsRelation table
     result = await friendsRelation.create({
@@ -76,12 +118,34 @@ app.post("/:profileId/follows/:beingFollowedProfileId", checkjwt, authorizedForP
 });
 
 /* 
-* /:profileId/follows/:beingFollowedProfileId - DELETE - user unfollows other user
-* @check check active jwt
+* /:profileUUID/follows/:beingFollowedProfileUUID - DELETE - user unfollows other user
+* @check check active jwt, check if profile uuid matches
 */
-app.delete("/:profileId/follows/:beingFollowedProfileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const profileId = req.params.profileId;
-    const beingFollowedProfileId = req.params.beingFollowedProfileId;
+app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const profileUUID = req.params.profileUUID;
+    const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
+
+    p = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const profileId = p.id;
+
+    p = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: beingFollowedProfileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const beingFollowedProfileId = p.id;
 
     // update friendsRelation table
     result = await friendsRelation.destroy({

@@ -2,7 +2,7 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { reactions } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorized, authorizedForProfileId } = require('../middleware/jwtcheck');
+const { checkjwt, authorized } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json())
 
@@ -11,19 +11,18 @@ app.use(bodyParser.json())
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:uuid", checkjwt, authorized, async (req, res) => {
-    let result = await reactions.create(req.body)
+    result = await reactions.create(req.body);
 
     res.send(result ? "reaction created successfully!!" : "error occurred")
 });
 
 /* 
 * /:id - GET - get a reaction by id
-* @check check active jwt
 */
-app.get("/:reactionId", checkjwt, async (req, res) => {
+app.get("/:reactionId", async (req, res) => {
     const reactionId = req.params.reactionId;
 
-    let result = await reactions.findOne({
+    result = await reactions.findOne({
         where: {
             "id": {
                 [Op.eq]: reactionId,

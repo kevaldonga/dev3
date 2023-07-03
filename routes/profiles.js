@@ -1,21 +1,22 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { profiles, tagUserRelation, userRelationCount } = require('../models');
+const { profiles, tagUserRelation } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorized, authorizedForProfileId, checkActiveUUID } = require('../middleware/jwtcheck');
+const { checkjwt, authorized, authorizedForProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json());
 
 /*
 * /:profileId - GET - get a user profile
-* @check check active jwt
+* @check check active jwt, match profile uuid
 */
-app.get('/:profileId', checkjwt, authorizedForProfileId, async (req, res) => {
-    const profileId = req.params.profileId;
-    let result = await profiles.findOne({
+app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const profileUUID = req.params.profileUUID;
+
+    result = await profiles.findOne({
         where: {
-            "id": {
-                [Op.eq]: profileId,
+            "uuid": {
+                [Op.eq]: profileUUID,
             },
         },
     });
@@ -31,15 +32,15 @@ app.post('/:uuid', checkjwt, authorized, async (req, res) => {
 });
 
 /*
-* /:uuid - PUT - update a user profile
+* /:profileUUID - PUT - update a user profile
 * @check check active jwt
 */
-app.put('/:uuid', checkjwt, async (req, res) => {
-    const uuid = req.params.uuid;
-    let result = await profiles.update(req.body, {
+app.put('/:profileUUID', checkjwt, async (req, res) => {
+    const profileUUID = req.params.profileUUID;
+    result = await profiles.update(req.body, {
         where: {
             "uuid": {
-                [Op.eq]: uuid,
+                [Op.eq]: profileUUID,
             },
         },
     });
@@ -48,15 +49,15 @@ app.put('/:uuid', checkjwt, async (req, res) => {
 
 
 /*
-* /:uuid - DELETE - delete a user profile by given uuid
+* /:profileUUID - DELETE - delete a user profile by given uuid
 * @check check active jwt
 */
-app.delete('/:uuid', checkjwt, async (req, res) => {
-    const uuid = req.params.uuid;
+app.delete('/:profileUUID', checkjwt, async (req, res) => {
+    const profileUUID = req.params.profileUUID;
     result = await profiles.destroy({
         where: {
             "uuid": {
-                [Op.eq]: uuid,
+                [Op.eq]: profileUUID,
             },
         },
     });
@@ -66,34 +67,48 @@ app.delete('/:uuid', checkjwt, async (req, res) => {
 
 /*
 * /:profileId/tags - GET - get all tags of profile
-* @check check active jwt, check if jwt matches request uri
 */
-app.get("/:profileId/tags", checkjwt, authorizedForProfileId, async (req, res) => {
+app.get("/:profileId/tags", async (req, res) => {
     const profileId = req.params.profileId;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
 
-    let result = await tagUserRelation.findAll({
+    result = await tagUserRelation.findAll({
         where: {
             "profileId": {
                 [Op.eq]: profileId,
             },
         },
+        limit: 10,
+        offset: offset,
+        include: "tagList",
     });
 
     res.send(result);
 });
 
 /* 
-* /:profileId/tag/:tagId - DELETE - delete tag inside profile
+* /:profileUUID/tags/:tagId - DELETE - delete tag inside profile
 * @check check active jwt, check if jwt matches request uri
 */
-app.delete("/:profileId/tag/:tagId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const uuid = req.params.uuid;
+app.delete("/:profileUUID/tags/:tagId", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const profileUUID = req.params.profileUUID;
     const tagId = req.params.tagId;
 
-    let result = await tagUserRelation.destory({
+    p = await profiles.findOne({
         where: {
             "uuid": {
-                [Op.eq]: uuid,
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const profileId = p.id;
+
+    result = await tagUserRelation.destory({
+        where: {
+            "profileId": {
+                [Op.eq]: profileId,
             },
             "tagId": {
                 [Op.eq]: tagId,

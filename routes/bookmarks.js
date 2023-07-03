@@ -1,8 +1,8 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { bookmarkPostsRelation } = require('../models');
+const { bookmarkPostsRelation, profiles } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorizedForProfileId, addProfileId } = require('../middleware/jwtcheck');
+const { checkjwt, authorizedForProfileId, addProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json());
 
@@ -18,25 +18,41 @@ app.post("/:profileId", checkjwt, authorizedForProfileId, addProfileId, async (r
 });
 
 /*
-* /:profileId - GET - get all bookmarked posts
-* @check check active jwt, check if jwt matches request uri
+* /:profileUUID - GET -  bookmarked posts
+* @check check active jwt, check if profile uuid matches
 */
-app.get("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const profileId = req.params.profileId;
+app.get("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const profileUUID = req.params.profileUUID;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
+    p = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const profileId = p.id;
+
     result = await bookmarkPostsRelation.findAll({
         where: {
             "profileId": {
                 [Op.eq]: profileId,
             },
         },
+        limit: 10,
+        offset: offset,
+        include: "posts",
     });
 
     res.send(result);
 });
 
 /* 
-* /:bookmarkId - DELETE - remove a bookmark on a post by given id
-* @check check active jwt, check if jwt matches request uri
+* /:bookmarkId - DELETE - remove a bookmark on a post by given uuid
+* @check check active jwt
 */
 app.delete("/:bookmarkUUID", checkjwt, async (req, res) => {
     const bookmarkUUID = req.params.bookmarkUUID;

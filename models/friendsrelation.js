@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.profiles, { foreignKey: "followerProfileId" });
-      this.belongsTo(models.profiles, { foreignKey: "beingFollowedProfileId" });
+      // this.belongsTo(models.profiles, { foreignKey: "beingFollowedProfileId" });
     }
   }
   friendsRelation.init({
