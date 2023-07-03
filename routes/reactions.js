@@ -37,13 +37,13 @@ app.get("/:reactionId", checkjwt, async (req, res) => {
 * /:reactionId/profile/:profileId - DELETE - delete a reaction
 * @check check active jwt
 */
-app.delete("/:reactionId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const reactionId = req.params.reactionId;
+app.delete("/:reactionUUID", checkjwt, async (req, res) => {
+    const reactionUUID = req.params.reactionUUID;
 
     let result = await reactions.destroy({
         where: {
-            "id": {
-                [Op.eq]: reactionId,
+            "uuid": {
+                [Op.eq]: reactionUUID,
             },
         },
     });

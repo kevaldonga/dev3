@@ -25,16 +25,16 @@ app.get("/:postId", checkjwt, async (req, res) => {
 });
 
 /* 
-* /:categoryId/profile/:profileId - DELETE - remove category of post by id
-* @check check active jwt, check if jwt matches request uri
+* /:categoryUUID - DELETE - remove category of post by id
+* @check check active jwt
 */
-app.delete("/:categoryId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const categoryId = req.params.categoryId;
+app.delete("/:categoryUUID", checkjwt, async (req, res) => {
+    const categoryUUID = req.params.categoryUUID;
 
     result = await categorOfPost.destroy({
         where: {
-            "id": {
-                [Op.eq]: categoryId,
+            "uuid": {
+                [Op.eq]: categoryUUID,
             },
         },
     });
@@ -53,16 +53,16 @@ app.post("/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
 });
 
 /* 
-* /:id/all - GET - get all post of category
+* /:categoryId/all - GET - get all post of category
 * @check check active jwt
 */
-app.post("/:postId/all", checkjwt, async (req, res) => {
-    const postId = req.params.postId;
+app.get("/:category/all", checkjwt, async (req, res) => {
+    const category = req.params.category;
 
     result = await categorOfPost.findAll({
         where: {
-            "postId": {
-                [Op.eq]: postId,
+            "type": {
+                [Op.eq]: category,
             },
         },
     });

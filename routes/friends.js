@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 * /:profileId/followers - GET - get all followers of a user
 * @check check active jwt
 */
-app.get("/:profileId/followers", checkjwt, authorizedForProfileId, async (req, res) => {
+app.get("/:profileId/followers", checkjwt, async (req, res) => {
     const profileId = req.params.profileId;
     result = await friendsRelation.findAll({
         where: {
@@ -25,7 +25,7 @@ app.get("/:profileId/followers", checkjwt, authorizedForProfileId, async (req, r
 * /:profileId/following - GET - get all followings of a user
 * @check check active jwt
 */
-app.get("/:profileId/followings", checkjwt, authorizedForProfileId, async (req, res) => {
+app.get("/:profileId/followings", checkjwt, async (req, res) => {
     const profileId = req.params.profileId;
 
     result = await friendsRelation.findAll({
@@ -40,17 +40,17 @@ app.get("/:profileId/followings", checkjwt, authorizedForProfileId, async (req, 
 });
 
 /* 
-* /:followerProfileId/follows/:beingFollowedProfileId - POST - user follows other user
+* /:profileId/follows/:beingFollowedProfileId - POST - user follows other user
 * @check check active jwt
 */
-app.post("/:followerProfileId/follows/:beingFollowedProfileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const followerProfileId = req.params.followerProfileId;
+app.post("/:profileId/follows/:beingFollowedProfileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const profileId = req.params.profileId;
     const beingFollowedProfileId = req.params.beingFollowedProfileId;
 
     // update friendsRelation table
     result = await friendsRelation.create({
         "beingFollowedProfileId": beingFollowedProfileId,
-        "followerProfileId": followerProfileId,
+        "followerProfileId": profileId,
     });
 
     res.send(result ? "operation successful!!" : "error occured");
@@ -59,7 +59,7 @@ app.post("/:followerProfileId/follows/:beingFollowedProfileId", checkjwt, author
     await profiles.increment("followings", {
         where: {
             "profileId": {
-                [Op.eq]: followerProfileId,
+                [Op.eq]: profileId,
             },
         }
     });
@@ -76,16 +76,16 @@ app.post("/:followerProfileId/follows/:beingFollowedProfileId", checkjwt, author
 });
 
 /* 
-* /:followerProfileId/follows/:beingFollowedProfileId - DELETE - user unfollows other user
+* /:profileId/follows/:beingFollowedProfileId - DELETE - user unfollows other user
 * @check check active jwt
 */
-app.delete("/:followerProfileId/follows/:beingFollowedProfileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const followerProfileId = req.params.followerProfileId;
+app.delete("/:profileId/follows/:beingFollowedProfileId", checkjwt, authorizedForProfileId, async (req, res) => {
+    const profileId = req.params.profileId;
     const beingFollowedProfileId = req.params.beingFollowedProfileId;
 
     // update friendsRelation table
     result = await friendsRelation.destroy({
-        "followerProfileId": followerProfileId,
+        "followerProfileId": profileId,
         "beingFollowedProfileId": beingFollowedProfileId,
     });
 
@@ -95,7 +95,7 @@ app.delete("/:followerProfileId/follows/:beingFollowedProfileId", checkjwt, auth
     await profiles.decrement("followings", {
         by: 1, where: {
             "profileId": {
-                [Op.eq]: followerProfileId,
+                [Op.eq]: profileId,
             },
         }
     });
@@ -104,7 +104,7 @@ app.delete("/:followerProfileId/follows/:beingFollowedProfileId", checkjwt, auth
     await profiles.decrement("followers", {
         by: 1, where: {
             "profileId": {
-                [Op.eq]: beingFollowedProfileId,
+                [Op.eq]: profileId,
             },
         }
     });

@@ -23,18 +23,18 @@ app.get('/:profileId', checkjwt, authorizedForProfileId, async (req, res) => {
 });
 
 /* 
-* / - POST - create a user profile
+* /:uuid - POST - create a user profile
 */
-app.post('/', async (req, res) => {
+app.post('/:uuid', checkjwt, authorized, async (req, res) => {
     result = await profiles.create(req.body);
     res.send(result ? "created successfully!!" : "error occured");
 });
 
 /*
 * /:uuid - PUT - update a user profile
-* @check check active jwt, check if jwt matches request uri
+* @check check active jwt
 */
-app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
+app.put('/:uuid', checkjwt, async (req, res) => {
     const uuid = req.params.uuid;
     let result = await profiles.update(req.body, {
         where: {
@@ -49,9 +49,9 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
 
 /*
 * /:uuid - DELETE - delete a user profile by given uuid
-* @check check active jwt, check if jwt matches request uri
+* @check check active jwt
 */
-app.delete('/:uuid', checkjwt, authorized, async (req, res) => {
+app.delete('/:uuid', checkjwt, async (req, res) => {
     const uuid = req.params.uuid;
     result = await profiles.destroy({
         where: {
@@ -66,7 +66,7 @@ app.delete('/:uuid', checkjwt, authorized, async (req, res) => {
 
 /*
 * /:profileId/tags - GET - get all tags of profile
-* @check check active jwt
+* @check check active jwt, check if jwt matches request uri
 */
 app.get("/:profileId/tags", checkjwt, authorizedForProfileId, async (req, res) => {
     const profileId = req.params.profileId;

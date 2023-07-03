@@ -2,15 +2,19 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorized, authorizedForProfileId } = require('../middleware/jwtcheck');
+const { checkjwt, addProfileId } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json());
+/*
+/ resource GET / POST - GET thi list, POST thi create
+/ resource / uuid - GET, PUT, DELETE
+
 
 /* 
-* /:uuid - POST - create post
-* @check check active jwt, check if jwt matches request uri
+* / - POST - create post
+* @check check active jwt, get profileId from payload and add it req.nody
 */
-app.post("/:uuid", checkjwt, authorized, async (req, res) => {
+app.post("/", checkjwt, addProfileId, async (req, res) => {
     let result = await posts.create(req.body)
 
     res.send(result ? "post created successfully!!" : "error occurred");
@@ -33,15 +37,15 @@ app.get("/:postId", checkjwt, async (req, res) => {
 });
 
 /*
-* /:postId/profile/:profileId - POST - update the post
+* /:postUUID - PUT - update the post
 * @check check active jwt
 */
-app.post("/:postId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const postId = req.params.postId;
+app.put("/:postUUID", checkjwt, async (req, res) => {
+    const postUUID = req.params.postUUID;
     let result = await posts.update(req.body, {
         where: {
-            "id": {
-                [Op.eq]: postId,
+            "uuid": {
+                [Op.eq]: postUUID,
             },
         },
     });
@@ -50,15 +54,15 @@ app.post("/:postId/profile/:profileId", checkjwt, authorizedForProfileId, async 
 });
 
 /*
-* /:postId/profile/:profileId - DELETE - delete the post
+* /:postUUID - DELETE - delete the post
 * @check check active jwt
 */
-app.delete("/:postId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const postId = req.params.postId;
+app.delete("/:postUUID", checkjwt, async (req, res) => {
+    const postUUID = req.params.postUUID;
     let result = await posts.destroy({
         where: {
-            "id": {
-                [Op.eq]: postId,
+            "uuid": {
+                [Op.eq]: postUUID,
             },
         },
     });
@@ -162,7 +166,7 @@ app.get("/:tagId/posts", checkjwt, async (req, res) => {
 * /:postId/tag/:tagId/profile/profileId - DELETE - delete tag in post
 * @check check active jwt
 */
-app.delete("/:postId/tag/:tagId/profile/profileId", checkjwt, authorizedForProfileId, async (req, res) => {
+app.delete("/:postId/tag/:tagId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
     const postId = req.params.postId;
     const tagId = req.params.tagId;
 
@@ -196,10 +200,10 @@ app.get("/:postId/bookmarks/count", checkjwt, async (req, res) => {
 });
 
 /* 
-* /:postId/bookmarks/All
+* /:postId/bookmarks - GET - get profiles of ones who bookmarked post
 * @check check active jwt
 */
-app.get("/:postId/bookmarks/count", checkjwt, async (req, res) => {
+app.get("/:postId/bookmarks", checkjwt, async (req, res) => {
     const postId = req.params.postId;
 
     let result = await bookmarkPostRelation.findAll({

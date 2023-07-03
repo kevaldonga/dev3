@@ -17,15 +17,15 @@ app.post("/:uuid", checkjwt, authorized, async (req, res) => {
 });
 
 /* 
-* /:tagId/profile/profileId - DELETE - delete a tag
+* /:tagUUID - DELETE - delete a tag
 * @check check active jwt
 */
-app.delete("/:tagId/profile/profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const tagId = req.params.tagId;
+app.delete("/:tagUUID", checkjwt, async (req, res) => {
+    const tagUUID = req.params.tagUUID;
     let result = await tagList.destroy(req.body, {
         where: {
-            "id": {
-                [Op.eq]: tagId,
+            "uuid": {
+                [Op.eq]: tagUUID,
             },
         },
     });

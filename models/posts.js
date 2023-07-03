@@ -28,7 +28,7 @@ module.exports = (sequelize, DataTypes) => {
     profileId: DataTypes.INTEGER,
     title: { type: DataTypes.STRING, allowNull: false },
     description: DataTypes.STRING,
-    reactionCount: DataTypes.INTEGER,
+    reactionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,

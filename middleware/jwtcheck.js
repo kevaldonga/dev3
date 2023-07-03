@@ -30,6 +30,11 @@ const authorizedForProfileId = (req, res, next) => {
     }
 }
 
+const addProfileId = (req, res, next) => {
+    req.body.profileId = req.userinfo._sa;
+    next();
+}
+
 const checkActiveUUID = (req, res, next) => {
     const myuuid = req.params.uuid;
 
@@ -51,4 +56,4 @@ const checkActiveUUID = (req, res, next) => {
     });
 }
 
-module.exports = { checkjwt: checkjwt, authorized: authorized, authorizedForProfileId: authorizedForProfileId, checkActiveUUID: checkActiveUUID };
+module.exports = { checkjwt: checkjwt, authorized: authorized, addProfileId: addProfileId, authorizedForProfileId: authorizedForProfileId, checkActiveUUID: checkActiveUUID };
