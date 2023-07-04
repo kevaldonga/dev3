@@ -13,7 +13,7 @@ app.get("/:profileUUID/followers", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
 
-    p = await profiles.findOne({
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
@@ -21,13 +21,16 @@ app.get("/:profileUUID/followers", async (req, res) => {
         },
         attributes: ['id'],
     });
-    const profileId = p.id;
+
+    const profileId = result.id;
+
     result = await friendsRelation.findAll({
         where: {
             "beingFollowedProfileId": profileId,
         },
         limit: 10,
         offset: offset,
+        include: "followers",
     });
 
     res.send(result);
@@ -39,13 +42,16 @@ app.get("/:profileUUID/followers", async (req, res) => {
 app.get("/:profileUUID/followings", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
-    p = await profiles.findOne({
+
+    result = await profiles.findOne({
         where: {
             uuid: profileUUID
         },
         attributes: ['id']
     });
-    const profileId = p.id;
+
+    const profileId = result.id;
+
     result = await friendsRelation.findAll({
         where: {
             "followerProfileId": {
@@ -54,6 +60,7 @@ app.get("/:profileUUID/followings", async (req, res) => {
         },
         limit: 10,
         offset: offset,
+        include: "followings"
     });
 
     res.send(result);
@@ -67,7 +74,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     const profileUUID = req.params.profileUUID;
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
 
-    p = await profiles.findOne({
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
@@ -76,9 +83,9 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
         attributes: ['id'],
     });
 
-    const profileId = p.id;
+    const profileId = result.id;
 
-    p = await profiles.findOne({
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: beingFollowedProfileUUID,
@@ -87,7 +94,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
         attributes: ['id'],
     });
 
-    const beingFollowedProfileId = p.id;
+    const beingFollowedProfileId = result.id;
 
     // update friendsRelation table
     result = await friendsRelation.create({
@@ -125,7 +132,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     const profileUUID = req.params.profileUUID;
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
 
-    p = await profiles.findOne({
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
@@ -134,9 +141,9 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
         attributes: ['id'],
     });
 
-    const profileId = p.id;
+    const profileId = result.id;
 
-    p = await profiles.findOne({
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: beingFollowedProfileUUID,
@@ -145,7 +152,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
         attributes: ['id'],
     });
 
-    const beingFollowedProfileId = p.id;
+    const beingFollowedProfileId = result.id;
 
     // update friendsRelation table
     result = await friendsRelation.destroy({

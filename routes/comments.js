@@ -15,17 +15,17 @@ app.post("/:profileId", checkjwt, authorizedForProfileId, addProfileId, async (r
 
     res.send(result ? "comment created successfully!!" : "error occured");
 });
-p
+
 /* 
 * /:id - GET - get a comment by id
 * @check check active jwt
 */
-app.get("/:commentId", checkjwt, async (req, res) => {
-    const commentId = req.params.commentId;
+app.get("/:commentUUID", checkjwt, async (req, res) => {
+    const commentUUID = req.params.commentUUID;
     result = await comments.findOne({
         where: {
-            "id": {
-                [Op.eq]: commentId,
+            "uuid": {
+                [Op.eq]: commentUUID,
             },
         },
     });
@@ -66,11 +66,22 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
 
 
 /*
-* /:commentId/reactions - GET - get all reactions of comment
+* /:commentUUID/reactions - GET - get all reactions of comment
 */
-app.get("/:commentId/reactions", async (req, res) => {
-    const commentId = req.params.commentId;
+app.get("/:commentUUID/reactions", async (req, res) => {
+    const commentUUID = req.params.commentUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
+    result = await comments.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: commentUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const commentId = result.id;
 
     result = await reactionOnComments.findAll({
         where: {
@@ -86,12 +97,24 @@ app.get("/:commentId/reactions", async (req, res) => {
 });
 
 /*
-* /:commentId/reaction/:reactionId - DELETE - delete a reaction on a comment
+* /:commentUUID/reaction/:reactionUUID - DELETE - delete a reaction on a comment
 * @check check active jwt
 */
-app.delete("/:commentId/reaction/:reactionUUID", checkjwt, async (req, res) => {
-    const commentId = req.params.commentId;
+app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) => {
+    const commentUUID = req.params.commentUUID;
     const reactionUUID = req.params.reactionUUID;
+
+    result = await comments.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: commentUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const commentId = result.id;
+
     result = await reactionOnComments.findAll({
         where: {
             "commentId": {

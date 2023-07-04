@@ -1,17 +1,27 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { categorOfPost } = require('../models');
+const { categorOfPost, posts } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, authorizedForProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json());
 
 /*
-* /:postId - GET - get category(s) of a post by postId 
+* /:postUUID - GET - get category(s) of a post by postId 
 * @check check active jwt
 */
-app.get("/:postId", async (req, res) => {
-    const postId = req.params.postId;
+app.get("/:postUUID", async (req, res) => {
+    const postUUID = req.params.postUUID;
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            }
+        }
+    });
+
+    const postId = result.id;
 
     result = await categorOfPost.findAll({
         where: {
@@ -54,17 +64,17 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
 });
 
 /* 
-* /:categoryId/all - GET - get all post of category
+* /:categoryUUID/all - GET - get all post of category
 * @check check active jwt
 */
-app.get("/:category/all", async (req, res) => {
-    const category = req.params.category;
+app.get("/:categoryUUID/all", async (req, res) => {
+    const categoryUUID = req.params.categoryUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
 
     result = await categorOfPost.findAll({
         where: {
-            "type": {
-                [Op.eq]: category,
+            "uuid": {
+                [Op.eq]: categoryUUID,
             },
         },
         limit: 10,

@@ -34,10 +34,22 @@ app.delete("/:tagUUID", checkjwt, async (req, res) => {
 });
 
 /* 
-* /:tagId - GET - get a tag by id
+* /:tagUUID - GET - get a tag by id
 */
-app.get("/:tagId", async (req, res) => {
-    const tagId = req.params.tagId;
+app.get("/:tagUUID", async (req, res) => {
+    const tagUUID = req.params.tagUUID;
+
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const tagId = result.id;
+
     result = await tagList.findOne({
         where: {
             "id": {
@@ -50,11 +62,22 @@ app.get("/:tagId", async (req, res) => {
 });
 
 /* 
-* /:tagId/followers - GET - get all folllowers of tag
+* /:tagUUID/followers - GET - get all followers of tag
 */
-app.get("/:tagId/followers", async (req, res) => {
-    const tagId = req.params.tagId;
+app.get("/:tagUUID/followers", async (req, res) => {
+    const tagUUID = req.params.tagUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const tagId = result.id;
 
     result = await hashtagFollowers.findAll({
         where: {
@@ -64,20 +87,21 @@ app.get("/:tagId/followers", async (req, res) => {
         },
         limit: 10,
         offset: offset,
+        include: "profiles"
     });
 
     res.send(result);
 });
 
 /* 
-* /:profileUUID/follows/:tagId - POST - user follows tag
+* /:profileUUID/follows/:tagUUID - POST - user follows tag
 * @check check jwt token, check if profile uuid matches
 */
-app.post("/:profileUUID/follows/:hashtagId", checkjwt, authorizedForProfileUUID, async (req, res) => {
+app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
-    const hashtagId = req.params.hashtagId;
+    const tagUUID = req.params.tagUUID;
 
-    p = await profiles.findOne({
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
@@ -86,25 +110,35 @@ app.post("/:profileUUID/follows/:hashtagId", checkjwt, authorizedForProfileUUID,
         attributes: ['id'],
     });
 
-    const profileId = p.id;
+    const profileId = result.id;
+
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+    });
+
+    const tagId = result.id;
 
     result = await hashtagFollowers.create({
         "profileId": profileId,
-        "hashtagId": hashtagId,
+        "hashtagId": tagId,
     });
 
     res.send(result ? "hashtag followed successfully!!" : "error occured");
 });
 
 /* 
-* /:profileUUID/unfollows/:tagId - POST - user follows tag
+* /:profileUUID/unfollows/:tagUUID - POST - user follows tag
 * @check check jwt token, check if profile uuid matches
 */
-app.delete("/:profileUUID/unfollows/:hashtagId", checkjwt, authorizedForProfileUUID, async (req, res) => {
+app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
-    const hashtagId = req.params.hashtagId;
+    const tagUUID = req.params.hashtagUUID;
 
-    p = await profiles.findOne({
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
@@ -113,7 +147,17 @@ app.delete("/:profileUUID/unfollows/:hashtagId", checkjwt, authorizedForProfileU
         attributes: ['id'],
     });
 
-    const profileId = p.id;
+    const profileId = result.id;
+
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+    });
+
+    const tagId = result.id;
 
     result = await hashtagFollowers.destroy({
         where: {
@@ -121,7 +165,7 @@ app.delete("/:profileUUID/unfollows/:hashtagId", checkjwt, authorizedForProfileU
                 [Op.eq]: profileId,
             },
             "hashtagId": {
-                [Op.eq]: hashtagId,
+                [Op.eq]: tagId,
             },
         },
     });

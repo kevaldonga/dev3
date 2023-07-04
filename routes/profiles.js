@@ -66,11 +66,22 @@ app.delete('/:profileUUID', checkjwt, async (req, res) => {
 
 
 /*
-* /:profileId/tags - GET - get all tags of profile
+* /:profileUUID/tags - GET - get all tags of profile
 */
-app.get("/:profileId/tags", async (req, res) => {
-    const profileId = req.params.profileId;
+app.get("/:profileUUID/tags", async (req, res) => {
+    const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
+    result = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const profileId = result.id;
 
     result = await tagUserRelation.findAll({
         where: {
@@ -87,14 +98,25 @@ app.get("/:profileId/tags", async (req, res) => {
 });
 
 /* 
-* /:profileUUID/tags/:tagId - DELETE - delete tag inside profile
+* /:profileUUID/tags/:tagUUID - DELETE - delete tag inside profile
 * @check check active jwt, check if jwt matches request uri
 */
-app.delete("/:profileUUID/tags/:tagId", checkjwt, authorizedForProfileUUID, async (req, res) => {
+app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
-    const tagId = req.params.tagId;
+    const tagUUID = req.params.tagUUID;
 
-    p = await profiles.findOne({
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const tagId = result.id;
+
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
@@ -103,7 +125,7 @@ app.delete("/:profileUUID/tags/:tagId", checkjwt, authorizedForProfileUUID, asyn
         attributes: ['id'],
     });
 
-    const profileId = p.id;
+    const profileId = result.id;
 
     result = await tagUserRelation.destory({
         where: {

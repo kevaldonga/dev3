@@ -6,7 +6,7 @@ const { checkjwt, authorized } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json())
 
-/* 
+/*
 * /:uuid - POST - create a reaction
 * @check check active jwt, check if jwt matches request uri
 */
@@ -17,15 +17,15 @@ app.post("/:uuid", checkjwt, authorized, async (req, res) => {
 });
 
 /* 
-* /:id - GET - get a reaction by id
+* /:reactionUUID - GET - get a reaction by id
 */
-app.get("/:reactionId", async (req, res) => {
-    const reactionId = req.params.reactionId;
+app.get("/:reactionUUID", async (req, res) => {
+    const reactionUUID = req.params.reactionUUID;
 
     result = await reactions.findOne({
         where: {
-            "id": {
-                [Op.eq]: reactionId,
+            "uuid": {
+                [Op.eq]: reactionUUID,
             },
         },
     });
@@ -33,7 +33,7 @@ app.get("/:reactionId", async (req, res) => {
 });
 
 /*
-* /:reactionId/profile/:profileId - DELETE - delete a reaction
+* /:reactionUUID - DELETE - delete a reaction
 * @check check active jwt
 */
 app.delete("/:reactionUUID", checkjwt, async (req, res) => {

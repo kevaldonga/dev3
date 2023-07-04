@@ -1,6 +1,6 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation } = require('../models');
+const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation, tagList } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, addProfileId, authorizedForProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 
@@ -21,14 +21,14 @@ app.post("/", checkjwt, addProfileId, async (req, res) => {
 });
 
 /* 
-* /:id - GET - get post by its id
+* /:postUUID - GET - get post by its id
 */
-app.get("/:postId", async (req, res) => {
-    const postId = req.params.postId;
+app.get("/:postUUID", async (req, res) => {
+    const postUUID = req.params.postUUID;
     result = await posts.findOne({
         where: {
-            "id": {
-                [Op.eq]: postId,
+            "uuid": {
+                [Op.eq]: postUUID,
             },
         },
     });
@@ -70,11 +70,22 @@ app.delete("/:postUUID", checkjwt, async (req, res) => {
 });
 
 /* 
-* /:postId/reactions - GET - get all reactions on post
+* /:postUUID/reactions - GET - get all reactions on post
 */
-app.get("/:postId/reactions", async (req, res) => {
-    const postId = req.params.postId;
+app.get("/:postUUID/reactions", async (req, res) => {
+    const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const postId = result.id;
 
     result = await reactionOnPosts.findAll({
         where: {
@@ -90,11 +101,23 @@ app.get("/:postId/reactions", async (req, res) => {
 });
 
 /* 
-* /:postId/comments - GET - get all comments on post
+* /:postUUID/comments - GET - get all comments on post
 */
-app.get("/:postId/comments", async (req, res) => {
-    const postId = req.params.postId;
+app.get("/:postUUID/comments", async (req, res) => {
+    const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const postId = result.id;
+
     result = await comments.findAll({
         where: {
             "postId": {
@@ -109,12 +132,34 @@ app.get("/:postId/comments", async (req, res) => {
 });
 
 /* 
-* /:postId/:reactionId/profile/:profileUUID - DELETE - delete reaction on post
+* /:postUUID/reaction/:reactionId/profile/:profileUUID - DELETE - delete reaction on post
 * @check check active jwt
 */
-app.delete("/:postId/reaction/:reactionId/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
-    const postId = req.params.postId;
-    const reactionId = req.params.reactionId;
+app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const postUUID = req.params.postUUID;
+    const reactionUUID = req.params.reactionUUID;
+
+    result = posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const postId = result.id;
+
+    result = reactions.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: reactionUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const reactionId = result.id;
 
     result = await reactionOnPosts.destroy({
         where: {
@@ -131,11 +176,22 @@ app.delete("/:postId/reaction/:reactionId/profile/:profileUUID", checkjwt, autho
 });
 
 /* 
-* /:postId/tags - GET - get all tags in post
+* /:postUUID/tags - GET - get all tags in post
 */
-app.get("/:postId/tags", async (req, res) => {
-    const postId = req.params.postId;
+app.get("/:postUUID/tags", async (req, res) => {
+    const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const postId = result.id;
 
     result = await tagPostRelation.findAll({
         where: {
@@ -152,11 +208,22 @@ app.get("/:postId/tags", async (req, res) => {
 });
 
 /* 
-* /:postId/tags - GET - get all posts of tag
+* /:postUUID/tags - GET - get all posts of tag
 */
-app.get("/:tagId/posts", async (req, res) => {
-    const tagId = req.params.tagId;
+app.get("/:tagUUID/posts", async (req, res) => {
+    const tagUUID = req.params.tagUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const tagId = result.id;
 
     result = await tagPostRelation.findAll({
         where: {
@@ -173,12 +240,33 @@ app.get("/:tagId/posts", async (req, res) => {
 });
 
 /* 
-* /:postId/tag/:tagId/profile/profileId - DELETE - delete tag in post
+* /:postUUID/tag/:tagUUID/profile/:profileUUID - DELETE - delete tag in post
 * @check check active jwt
 */
-app.delete("/:postId/tag/:tagId/profile/:profileId", checkjwt, authorizedForProfileId, async (req, res) => {
-    const postId = req.params.postId;
-    const tagId = req.params.tagId;
+app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const postUUID = req.params.postUUID;
+    const tagUUID = req.params.tagUUID;
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const postId = result.id;
+
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+    });
+
+    const tagId = result.id;
 
     result = await tagPostRelation.destroy({
         where: {
@@ -195,24 +283,47 @@ app.delete("/:postId/tag/:tagId/profile/:profileId", checkjwt, authorizedForProf
 });
 
 /* 
-* /:postId/bookmarks/count - GET - get bookmark count of post
+* /:postUUID/bookmarks/count - GET - get bookmark count of post
 */
-app.get("/:postId/bookmarks/count", async (req, res) => {
-    const postId = req.params.postId;
+app.get("/:postUUID/bookmarks/count", async (req, res) => {
+    const postUUID = req.params.postUUID;
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const postId = result.id;
 
     result = await bookmarkPostRelation.findAll({
         where: {
             "postId": postId,
         },
+        attributes: ['id'],
     });
     res.send({ length: result.length });
 });
 
 /* 
-* /:postId/bookmarks - GET - get profiles of ones who bookmarked post
+* /:postUUID/bookmarks - GET - get profiles of ones who bookmarked post
 */
-app.get("/:postId/bookmarks", async (req, res) => {
-    const postId = req.params.postId;
+app.get("/:postUUID/bookmarks", async (req, res) => {
+    const postUUID = req.params.postUUID;
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const postId = result.id;
 
     result = await bookmarkPostRelation.findAll({
         where: {
@@ -224,14 +335,14 @@ app.get("/:postId/bookmarks", async (req, res) => {
 });
 
 /* 
-* /:profileId/isBookmarked/:postId - check if post is bookmarked or not
+* /:profileUUID/isBookmarked/:postUUID - check if post is bookmarked or not
 * @check check active jwt
 */
-app.get("/:profileUUID/isBookmarked/:postId", checkjwt, authorizedForProfileUUID, async (req, res) => {
+app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
-    const postId = req.params.postId;
+    const postUUID = req.params.postUUID;
 
-    p = await profiles.findOne({
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
@@ -240,7 +351,18 @@ app.get("/:profileUUID/isBookmarked/:postId", checkjwt, authorizedForProfileUUID
         attributes: ['id'],
     });
 
-    const profileId = p.id;
+    const profileId = result.id;
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const postId = result.id;
 
     result = await bookmarkPostRelation.findOne({
         where: {

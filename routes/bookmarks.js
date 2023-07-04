@@ -6,7 +6,7 @@ const { checkjwt, authorizedForProfileId, addProfileId, authorizedForProfileUUID
 
 app.use(bodyParser.json());
 
-/* 
+/*
 * /:uuid - POST - add a post to bookmark
 * @check check active jwt, check if jwt matches request uri, get profileId from payload and add it req.nody
 */
@@ -25,7 +25,7 @@ app.get("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =>
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
 
-    p = await profiles.findOne({
+    result = await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
@@ -34,7 +34,7 @@ app.get("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =>
         attributes: ['id'],
     });
 
-    const profileId = p.id;
+    const profileId = result.id;
 
     result = await bookmarkPostsRelation.findAll({
         where: {

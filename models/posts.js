@@ -22,6 +22,7 @@ module.exports = (sequelize, DataTypes) => {
         through: 'reactionOnPosts',
         foreignKey: 'reactionId',
       });
+      this.hasMany(models.comments);
     }
   }
   posts.init({
