@@ -28,9 +28,9 @@ module.exports = (sequelize, DataTypes) => {
   }
   profiles.init({
     userId: { type: DataTypes.INTEGER, unique: true },
-    profileImg: DataTypes.STRING,
+    profileImg: { type: DataTypes.STRING, allowNull: true },
     name: { type: DataTypes.STRING, allowNull: false },
-    bio: DataTypes.STRING,
+    bio: { type: DataTypes.STRING, allowNull: true, validate: { len: [10, 255] } },
     uuid: { type: DataTypes.UUID, defaultValue: Sequelize.UUIDV4 }
   }, {
     sequelize,

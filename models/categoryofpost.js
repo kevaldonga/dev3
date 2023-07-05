@@ -14,8 +14,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   categoryOfPost.init({
-    type: DataTypes.STRING,
-    postId: DataTypes.INTEGER,
+    type: { type: DataTypes.STRING, allowNull: false, validate: { len: [3, 20] } },
+    postId: { type: DataTypes.INTEGER, allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,

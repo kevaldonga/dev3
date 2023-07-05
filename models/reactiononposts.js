@@ -16,9 +16,9 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   reactionOnPosts.init({
-    reactionId: DataTypes.INTEGER,
-    postId: DataTypes.INTEGER,
-    profileId: DataTypes.INTEGER,
+    reactionId: { type: DataTypes.INTEGER, allowNull: false },
+    postId: { type: DataTypes.INTEGER, allowNull: false },
+    profileId: { type: DataTypes.INTEGER, allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,

@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation, tagList } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, addProfileId, authorizedForProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
 /*
@@ -15,7 +16,10 @@ app.use(bodyParser.json());
 * @check check active jwt, get profileId from payload and add it req.nody
 */
 app.post("/", checkjwt, addProfileId, async (req, res) => {
-    result = await posts.create(req.body)
+    value = nullCheck(res, body, { nonNullableFields: ['profileId', 'title', 'media'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
+    if (value) return;
+
+    result = await posts.create(req.body);
 
     res.send(result ? "post created successfully!!" : "error occurred");
 });
@@ -40,6 +44,9 @@ app.get("/:postUUID", async (req, res) => {
 * @check check active jwt
 */
 app.put("/:postUUID", checkjwt, async (req, res) => {
+    value = nullCheck(res, body, { mustBeNullFields: [...defaultNullFields, 'profileId', 'reactionCount'] });
+    if (value) return;
+
     const postUUID = req.params.postUUID;
     result = await posts.update(req.body, {
         where: {

@@ -2,7 +2,8 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { tagList, hashtagFollowers, profiles } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorized, authorizedForProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { checkjwt, authorized, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
 
@@ -11,6 +12,9 @@ app.use(bodyParser.json());
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:uuid", checkjwt, authorized, async (req, res) => {
+    value = nullCheck(res, body, { nonNullableFields: ['tag', 'image', 'color', 'description'], mustBeNullFields: [...defaultNullFields, 'count', 'followerCount'] });
+    if (value) return;
+
     result = await tagList.create(req.body);
 
     res.send(result ? "tag is created successfully!!" : "error occurred");
@@ -22,7 +26,7 @@ app.post("/:uuid", checkjwt, authorized, async (req, res) => {
 */
 app.delete("/:tagUUID", checkjwt, async (req, res) => {
     const tagUUID = req.params.tagUUID;
-    result = await tagList.destroy(req.body, {
+    result = await tagList.destroy({
         where: {
             "uuid": {
                 [Op.eq]: tagUUID,
@@ -127,11 +131,20 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
         "hashtagId": tagId,
     });
 
+    // increment following count in a tagList
+    await tagList.increment("followerCount", {
+        where: {
+            "id": {
+                [Op.eq]: tagId,
+            },
+        }
+    });
+
     res.send(result ? "hashtag followed successfully!!" : "error occured");
 });
 
 /* 
-* /:profileUUID/unfollows/:tagUUID - POST - user follows tag
+* /:profileUUID/unfollows/:tagUUID - DELETE - user unfollows tag
 * @check check jwt token, check if profile uuid matches
 */
 app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
@@ -168,6 +181,15 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
                 [Op.eq]: tagId,
             },
         },
+    });
+
+    // decrement following count in a tagList
+    await tagList.decrement("followerCount", {
+        where: {
+            "id": {
+                [Op.eq]: tagId,
+            },
+        }
     });
 
     res.send(result ? "hashtag unfollowed successfully!!" : "error occured");

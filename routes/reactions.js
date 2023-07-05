@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const { reactions } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, authorized } = require('../middleware/jwtcheck');
+const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 
 app.use(bodyParser.json())
 
@@ -11,6 +12,9 @@ app.use(bodyParser.json())
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:uuid", checkjwt, authorized, async (req, res) => {
+    value = nullCheck(res, body, { nonNullableFields: ['reaction'], mustBeNullFields: [...defaultNullFields] });
+    if (value) return;
+
     result = await reactions.create(req.body);
 
     res.send(result ? "reaction created successfully!!" : "error occurred")

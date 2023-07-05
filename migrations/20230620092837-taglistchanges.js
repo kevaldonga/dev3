@@ -7,7 +7,6 @@ module.exports = {
     queryInterface.addColumn("tagLists", "color", {
       type: Sequelize.CHAR(7),
       allowNull: false,
-
     });
     // image
     queryInterface.addColumn("tagLists", "image", {
@@ -18,6 +17,7 @@ module.exports = {
     queryInterface.addColumn("tagLists", "description", {
       type: Sequelize.STRING,
       allowNull: true,
+      validate: { len: [10, 255] }
     });
 
   },

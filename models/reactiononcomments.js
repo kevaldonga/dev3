@@ -16,9 +16,9 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   reactionOnComments.init({
-    reactionId: DataTypes.INTEGER,
-    commentId: DataTypes.INTEGER,
-    profileId: DataTypes.INTEGER,
+    reactionId: { type: DataTypes.INTEGER, allowNull: false },
+    commentId: { type: DataTypes.INTEGER, allowNull: false },
+    profileId: { type: DataTypes.INTEGER, allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,

@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const { categorOfPost, posts } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, authorizedForProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { nullCheck, defaultNullFields } = require("./validations/nullcheck");
 
 app.use(bodyParser.json());
 
@@ -57,6 +58,8 @@ app.delete("/:categoryUUID", checkjwt, async (req, res) => {
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    value = nullCheck(res, body, { nonNullableFields: ['type', 'postId'], mustBeNullFields: [...defaultNullFields] });
+    if (value) return;
 
     result = await categorOfPost.create(req.body);
 

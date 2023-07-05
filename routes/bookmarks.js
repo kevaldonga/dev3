@@ -3,26 +3,43 @@ const bodyParser = require('body-parser');
 const { bookmarkPostsRelation, profiles } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, authorizedForProfileId, addProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { nullCheck } = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
 
 /*
-* /:uuid - POST - add a post to bookmark
-* @check check active jwt, check if jwt matches request uri, get profileId from payload and add it req.nody
+* /:postUUID - POST - add a post to bookmark
+* @check check active jwt, get profileId from payload and add it req.nody
 */
-app.post("/:profileId", checkjwt, authorizedForProfileId, addProfileId, async (req, res) => {
+app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
+    value = nullCheck(res, body, { nonNullableFields: ['profileId'] });
+    if (value) return;
 
-    result = await bookmarkPostsRelation.create(req.body);
+    const profileId = req.body.profileId;
+    const postUUID = req.params.postUUID;
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const postId = result.id;
+
+    result = await bookmarkPostsRelation.create({ "postId": postId, "profileId": profileId });
 
     res.send(result ? "post bookmarked!!" : "error occured");
 });
 
 /*
-* /:profileUUID - GET -  bookmarked posts
+* /posts - GET -  bookmarked posts
 * @check check active jwt, check if profile uuid matches
 */
-app.get("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
-    const profileUUID = req.params.profileUUID;
+app.get("/posts", checkjwt, async (req, res) => {
+    const profileUUID = req.userinfo.auth2;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
 
     result = await profiles.findOne({

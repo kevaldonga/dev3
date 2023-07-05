@@ -15,8 +15,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   bookmarkPostsRelation.init({
-    postId: DataTypes.INTEGER,
-    profileId: DataTypes.INTEGER,
+    postId: { type: DataTypes.INTEGER, allowNull: false },
+    profileId: { type: DataTypes.INTEGER, allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,

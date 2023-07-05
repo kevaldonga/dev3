@@ -2,15 +2,32 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { comments, reactionOnComments } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorizedForProfileId, addProfileId } = require('../middleware/jwtcheck');
+const { checkjwt, authorizedForProfileUUID, addProfileId } = require('../middleware/jwtcheck');
+const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
 
 /* 
-* /:profileId - POST - create a comment
+* /:profileUUID - POST - create a comment
 * @check check active jwt, check if jwt matches request uri, get profileId from payload and add it req.nody
 */
-app.post("/:profileId", checkjwt, authorizedForProfileId, addProfileId, async (req, res) => {
+app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    value = nullCheck(res, body, { nonNullableFields: ['comment', 'postId'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
+    if (value) return;
+
+    const profileUUID = req.params.profileUUID;
+
+    result = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    req.body.profileId = result.id;
+
     result = await comments.create(req.body);
 
     res.send(result ? "comment created successfully!!" : "error occured");
@@ -37,6 +54,9 @@ app.get("/:commentUUID", checkjwt, async (req, res) => {
 * @check check active jwt, check if jwt matches request uri
 */
 app.put("/:commentUUID", checkjwt, async (req, res) => {
+    value = nullCheck(res, body, { nonNullableFields: ['comment'], mustBeNullFields: [...defaultNullFields, 'postId', 'profileId', 'reactionCount'] });
+    if (value) return;
+
     const commentUUID = req.params.commentUUID;
     result = await comments.update(req.body, {
         where: {

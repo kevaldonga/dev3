@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const { checkjwt, authorized, checkActiveUUID } = require('../middleware/jwtcheck');
 const { validatePassword } = require('./validations/user');
 const { addUUID, removeUUID } = require('../middleware/uuidfileop');
+const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const JWTPRIVATEKEY = 'FASTSPEED';
 
 app.use(bodyParser.json());
@@ -30,6 +31,9 @@ app.get('/:uuid', checkjwt, async (req, res) => {
 * / - POST - create a user
 */
 app.post('/', async (req, res) => {
+    value = nullCheck(res, body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token'] });
+    if (value) return;
+
     result = await users.create(req.body);
     res.send(result ? "created successfully!!" : "error occured");
 });
@@ -38,6 +42,9 @@ app.post('/', async (req, res) => {
 * /login - POST - login user
 */
 app.post('/login', async (req, res) => {
+    value = nullCheck(res, body, { nonNullableFields: ['username', 'password'] });
+    if (value) return;
+
     result = await users.findOne({
         where: {
             "username": {
@@ -62,13 +69,10 @@ app.post('/login', async (req, res) => {
 * @check check active jwt, check if jwt matches request uri
 */
 app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
+    value = nullCheck(res, body, { nonNullableFields: ['username'], mustBeNullFields: [...defaultNullFields, 'password'] });
+    if (value) return;
+
     const uuid = req.params.uuid;
-    if (req.body.password !== undefined) {
-        res.status(401).send('Cannot change password from this endpoint');
-    }
-    if (req.body.uuid !== undefined) {
-        res.status(403).send('Cannot change uuid');
-    }
     result = await users.update(req.body, {
         where: {
             "uuid": {
@@ -84,10 +88,13 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
 * /:uuid/changePassword - PUT - change password
 */
 app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    if (!validatePassword(req.body.password)) {
-        res.status(400).end("invalid format of password");
+    value = nullCheck(res, body, { nonNullableFields: ['password'] });
+    if (value) return;
+
+    if (!validatePassword(req.body.password, res)) {
         return;
     }
+
     userdetails = await users.updatePassword(req.body.password, req.params.uuid);
     userinfo = {
         'auth': userdetails.uuid,

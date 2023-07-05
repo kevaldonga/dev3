@@ -15,8 +15,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   tagPostRelation.init({
-    tagId: DataTypes.INTEGER,
-    postId: DataTypes.INTEGER,
+    tagId: { type: DataTypes.INTEGER, allowNull: false },
+    postId: { type: DataTypes.INTEGER, allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,

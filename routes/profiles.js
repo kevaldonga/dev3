@@ -2,7 +2,8 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { profiles, tagUserRelation } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorized, authorizedForProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
+const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 
 app.use(bodyParser.json());
 
@@ -26,7 +27,10 @@ app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
 /* 
 * /:uuid - POST - create a user profile
 */
-app.post('/:uuid', checkjwt, authorized, async (req, res) => {
+app.post('/:uuid', async (req, res) => {
+    value = nullCheck(res, req.body, { nonNullableFields: ['userId', 'name'], mustBeNullFields: [...defaultNullFields, 'followers', 'followings'] });
+    if (value) return;
+
     result = await profiles.create(req.body);
     res.send(result ? "created successfully!!" : "error occured");
 });
@@ -35,7 +39,10 @@ app.post('/:uuid', checkjwt, authorized, async (req, res) => {
 * /:profileUUID - PUT - update a user profile
 * @check check active jwt
 */
-app.put('/:profileUUID', checkjwt, async (req, res) => {
+app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
+    value = nullCheck(res, req.body, { mustBeNullFields: [...defaultNullFields, 'followers', 'followings', 'userId'] });
+    if (value) return;
+
     const profileUUID = req.params.profileUUID;
     result = await profiles.update(req.body, {
         where: {
@@ -98,6 +105,59 @@ app.get("/:profileUUID/tags", async (req, res) => {
 });
 
 /* 
+* /:profileUUID/tags/:tagUUID - POST - add tag inside profile
+* @check check active jwt, check if jwt matches request uri
+*/
+app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const profileUUID = req.params.profileUUID;
+    const tagUUID = req.params.tagUUID;
+
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const tagId = result.id;
+
+    result = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    });
+
+    const profileId = result.id;
+
+    result = await tagUserRelation.create({
+        where: {
+            "profileId": {
+                [Op.eq]: profileId,
+            },
+            "tagId": {
+                [Op.eq]: tagId,
+            },
+        },
+    });
+
+    // increment used count in taglist 
+    await tagList.increment("count", {
+        where: {
+            "id": {
+                [Op.eq]: tagId,
+            },
+        }
+    });
+
+    res.send(result ? "tag added successfully!!" : "error occured");
+});
+
+/* 
 * /:profileUUID/tags/:tagUUID - DELETE - delete tag inside profile
 * @check check active jwt, check if jwt matches request uri
 */
@@ -136,6 +196,15 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
                 [Op.eq]: tagId,
             },
         },
+    });
+
+    // decrement used count in taglist 
+    await tagList.decrement("count", {
+        where: {
+            "id": {
+                [Op.eq]: tagId,
+            },
+        }
     });
 
     res.send(result ? "tag removed successfully!!" : "error occured");

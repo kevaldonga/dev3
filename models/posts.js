@@ -26,9 +26,9 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   posts.init({
-    profileId: DataTypes.INTEGER,
-    title: { type: DataTypes.STRING, allowNull: false },
-    description: DataTypes.STRING,
+    profileId: { type: DataTypes.INTEGER, allowNull: false },
+    title: { type: DataTypes.STRING, allowNull: false, validate: { len: [5, 100] } },
+    description: { type: DataTypes.STRING, allowNull: true, validate: { len: [10, 255] } },
     reactionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
