@@ -13,6 +13,7 @@ app.use(bodyParser.json());
 */
 app.get("/:postUUID", async (req, res) => {
     const postUUID = req.params.postUUID;
+    let error = false;
 
     result = await posts.findOne({
         where: {
@@ -20,18 +21,29 @@ app.get("/:postUUID", async (req, res) => {
                 [Op.eq]: postUUID,
             }
         }
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const postId = result.id;
 
-    result = await categorOfPost.findAll({
+    await categorOfPost.findAll({
         where: {
             "postId": {
                 [Op.eq]: postId,
             },
         },
-    });
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -41,15 +53,19 @@ app.get("/:postUUID", async (req, res) => {
 app.delete("/:categoryUUID", checkjwt, async (req, res) => {
     const categoryUUID = req.params.categoryUUID;
 
-    result = await categorOfPost.destroy({
+    await categorOfPost.destroy({
         where: {
             "uuid": {
                 [Op.eq]: categoryUUID,
             },
         },
-    });
-
-    res.send(result ? "category removed !!" : "error occured");
+    })
+        .then((result) => {
+            res.send("category removed");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -60,9 +76,13 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
     value = nullCheck(body, { nonNullableFields: ['type', 'postId'], mustBeNullFields: [...defaultNullFields] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
-    result = await categorOfPost.create(req.body);
-
-    res.send(result ? "category created successfully !!" : "error occured");
+    await categorOfPost.create(req.body)
+        .then((result) => {
+            res.send("category created successfully !!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -73,7 +93,7 @@ app.get("/:categoryUUID/all", async (req, res) => {
     const categoryUUID = req.params.categoryUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
 
-    result = await categorOfPost.findAll({
+    await categorOfPost.findAll({
         where: {
             "uuid": {
                 [Op.eq]: categoryUUID,
@@ -82,9 +102,13 @@ app.get("/:categoryUUID/all", async (req, res) => {
         limit: 10,
         offset: offset,
         include: "posts",
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 module.exports = app;

@@ -17,14 +17,19 @@ app.use(bodyParser.json());
 */
 app.get('/:uuid', checkjwt, async (req, res) => {
     const uuid = req.params.uuid;
-    let result = await users.findOne({
+    await users.findOne({
         where: {
             "uuid": {
                 [Op.eq]: uuid,
             },
         },
-    });
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -34,8 +39,13 @@ app.post('/', async (req, res) => {
     value = nullCheck(body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
-    result = await users.create(req.body);
-    res.send(result ? "created successfully!!" : "error occured");
+    await users.create(req.body)
+        .then((result) => {
+            res.send("user created successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /*
@@ -44,6 +54,7 @@ app.post('/', async (req, res) => {
 app.post('/login', async (req, res) => {
     value = nullCheck(body, { nonNullableFields: ['username', 'password'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
+    let error = false;
 
     result = await users.findOne({
         where: {
@@ -52,7 +63,14 @@ app.post('/login', async (req, res) => {
             },
         },
         include: 'profiles',
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
+
     checked = await bcrypt.compare(req.body.password, result.password);
     if (checked) {
         let userObj = { auth: result.uuid, auth2: result.profiles.uuid, _sa: result.profiles.id };
@@ -73,14 +91,19 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     const uuid = req.params.uuid;
-    result = await users.update(req.body, {
+    await users.update(req.body, {
         where: {
             "uuid": {
                 [Op.eq]: uuid,
             },
         },
-    });
-    res.send(result ? "updated successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("user updated successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 
@@ -112,15 +135,20 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
 */
 app.delete('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     const uuid = req.params.uuid;
-    result = await users.destroy({
+    await users.destroy({
         where: {
             "uuid": {
                 [Op.eq]: uuid,
             },
         },
-    });
-    removeUUID(uuid);
-    res.send(result ? "deleted successfully!!" : "error occured");
+    })
+        .then((result) => {
+            removeUUID(uuid);
+            res.send("user deleted successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 module.exports = app;

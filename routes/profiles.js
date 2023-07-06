@@ -14,14 +14,19 @@ app.use(bodyParser.json());
 app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
 
-    result = await profiles.findOne({
+    await profiles.findOne({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
             },
         },
-    });
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -31,8 +36,13 @@ app.post('/:uuid', async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['userId', 'name'], mustBeNullFields: [...defaultNullFields, 'followers', 'followings'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
-    result = await profiles.create(req.body);
-    res.send(result ? "created successfully!!" : "error occured");
+    await profiles.create(req.body)
+        .then((result) => {
+            res.send("profile created successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /*
@@ -44,14 +54,19 @@ app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     const profileUUID = req.params.profileUUID;
-    result = await profiles.update(req.body, {
+    await profiles.update(req.body, {
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
             },
         },
-    });
-    res.send(result ? "updated successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("profile updated successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 
@@ -61,14 +76,19 @@ app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
 */
 app.delete('/:profileUUID', checkjwt, async (req, res) => {
     const profileUUID = req.params.profileUUID;
-    result = await profiles.destroy({
+    await profiles.destroy({
         where: {
             "uuid": {
                 [Op.eq]: profileUUID,
             },
         },
-    });
-    res.send(result ? "deleted successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("profile deleted successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 
@@ -78,6 +98,7 @@ app.delete('/:profileUUID', checkjwt, async (req, res) => {
 app.get("/:profileUUID/tags", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await profiles.findOne({
         where: {
@@ -86,11 +107,16 @@ app.get("/:profileUUID/tags", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+    if (error) return;
 
     const profileId = result.id;
 
-    result = await tagUserRelation.findAll({
+    await tagUserRelation.findAll({
         where: {
             "profileId": {
                 [Op.eq]: profileId,
@@ -99,9 +125,13 @@ app.get("/:profileUUID/tags", async (req, res) => {
         limit: 10,
         offset: offset,
         include: "tagList",
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -111,6 +141,7 @@ app.get("/:profileUUID/tags", async (req, res) => {
 app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const tagUUID = req.params.tagUUID;
+    let error = false;
 
     result = await tagList.findOne({
         where: {
@@ -119,7 +150,13 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(409).send(err.message);
+        });
+
+    if (error) return;
 
     const tagId = result.id;
 
@@ -130,11 +167,32 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(409).send(err.message);
+        });
+
+    if (error) return;
+
 
     const profileId = result.id;
+    // increment used count in taglist 
+    await tagList.increment("count", {
+        where: {
+            "id": {
+                [Op.eq]: tagId,
+            },
+        }
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
 
-    result = await tagUserRelation.create({
+    if (error) return;
+
+    await tagUserRelation.create({
         where: {
             "profileId": {
                 [Op.eq]: profileId,
@@ -143,18 +201,13 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
                 [Op.eq]: tagId,
             },
         },
-    });
-
-    // increment used count in taglist 
-    await tagList.increment("count", {
-        where: {
-            "id": {
-                [Op.eq]: tagId,
-            },
-        }
-    });
-
-    res.send(result ? "tag added successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("tag added successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -164,6 +217,7 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
 app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const tagUUID = req.params.tagUUID;
+    let error = false;
 
     result = await tagList.findOne({
         where: {
@@ -172,7 +226,13 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const tagId = result.id;
 
@@ -183,20 +243,16 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
+
 
     const profileId = result.id;
-
-    result = await tagUserRelation.destory({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
-            },
-            "tagId": {
-                [Op.eq]: tagId,
-            },
-        },
-    });
 
     // decrement used count in taglist 
     await tagList.decrement("count", {
@@ -205,9 +261,30 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
                 [Op.eq]: tagId,
             },
         }
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
 
-    res.send(result ? "tag removed successfully!!" : "error occured");
+    if (error) return;
+
+    await tagUserRelation.destory({
+        where: {
+            "profileId": {
+                [Op.eq]: profileId,
+            },
+            "tagId": {
+                [Op.eq]: tagId,
+            },
+        },
+    })
+        .then((result) => {
+            res.send("tag removed successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 module.exports = app;

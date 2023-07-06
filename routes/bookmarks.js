@@ -14,6 +14,7 @@ app.use(bodyParser.json());
 app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
     value = nullCheck(body, { nonNullableFields: ['profileId'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
+    let error = false;
 
     const profileId = req.body.profileId;
     const postUUID = req.params.postUUID;
@@ -25,13 +26,23 @@ app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const postId = result.id;
 
-    result = await bookmarkPostsRelation.create({ "postId": postId, "profileId": profileId });
-
-    res.send(result ? "post bookmarked!!" : "error occured");
+    await bookmarkPostsRelation.create({ "postId": postId, "profileId": profileId })
+        .then((result) => {
+            res.send("added post to bookmark!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /*
@@ -41,6 +52,7 @@ app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
 app.get("/posts", checkjwt, async (req, res) => {
     const profileUUID = req.userinfo.auth2;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await profiles.findOne({
         where: {
@@ -48,8 +60,15 @@ app.get("/posts", checkjwt, async (req, res) => {
                 [Op.eq]: profileUUID,
             },
         },
+        include: "tagLists",
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const profileId = result.id;
 
@@ -62,9 +81,13 @@ app.get("/posts", checkjwt, async (req, res) => {
         limit: 10,
         offset: offset,
         include: "posts",
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -73,15 +96,19 @@ app.get("/posts", checkjwt, async (req, res) => {
 */
 app.delete("/:bookmarkUUID", checkjwt, async (req, res) => {
     const bookmarkUUID = req.params.bookmarkUUID;
-    result = await bookmarkPostsRelation.destroy({
+    await bookmarkPostsRelation.destroy({
         where: {
             "uuid": {
                 [Op.eq]: bookmarkUUID,
             },
         },
-    });
-
-    res.send(result ? "bookmark removed successfully !!" : "error occured");
+    })
+        .then((result) => {
+            res.send("bookmark removed successfully !!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 module.exports = app;

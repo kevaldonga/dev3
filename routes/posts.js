@@ -18,9 +18,13 @@ app.use(bodyParser.json());
 app.post("/", checkjwt, addProfileId, async (req, res) => {
     value = nullCheck(body, { nonNullableFields: ['profileId', 'title', 'media'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
-    result = await posts.create(req.body);
-
-    res.send(result ? "post created successfully!!" : "error occurred");
+    await posts.create(req.body)
+        .then((result) => {
+            res.send("post created successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -28,14 +32,19 @@ app.post("/", checkjwt, addProfileId, async (req, res) => {
 */
 app.get("/:postUUID", async (req, res) => {
     const postUUID = req.params.postUUID;
-    result = await posts.findOne({
+    await posts.findOne({
         where: {
             "uuid": {
                 [Op.eq]: postUUID,
             },
         },
-    });
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /*
@@ -47,15 +56,19 @@ app.put("/:postUUID", checkjwt, async (req, res) => {
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     const postUUID = req.params.postUUID;
-    result = await posts.update(req.body, {
+    await posts.update(req.body, {
         where: {
             "uuid": {
                 [Op.eq]: postUUID,
             },
         },
-    });
-
-    res.send(result ? "post updated successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("post updated successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /*
@@ -64,15 +77,19 @@ app.put("/:postUUID", checkjwt, async (req, res) => {
 */
 app.delete("/:postUUID", checkjwt, async (req, res) => {
     const postUUID = req.params.postUUID;
-    result = await posts.destroy({
+    await posts.destroy({
         where: {
             "uuid": {
                 [Op.eq]: postUUID,
             },
         },
-    });
-
-    res.send(result ? "post deleted successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("post deleted successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -81,6 +98,7 @@ app.delete("/:postUUID", checkjwt, async (req, res) => {
 app.get("/:postUUID/reactions", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await posts.findOne({
         where: {
@@ -89,11 +107,17 @@ app.get("/:postUUID/reactions", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const postId = result.id;
 
-    result = await reactionOnPosts.findAll({
+    await reactionOnPosts.findAll({
         where: {
             "postId": {
                 [Op.eq]: postId,
@@ -101,9 +125,13 @@ app.get("/:postUUID/reactions", async (req, res) => {
         },
         limit: 10,
         offset: offset,
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -112,6 +140,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
 app.get("/:postUUID/comments", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await posts.findOne({
         where: {
@@ -120,11 +149,17 @@ app.get("/:postUUID/comments", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const postId = result.id;
 
-    result = await comments.findAll({
+    await comments.findAll({
         where: {
             "postId": {
                 [Op.eq]: postId,
@@ -132,9 +167,13 @@ app.get("/:postUUID/comments", async (req, res) => {
         },
         limit: 10,
         offset: offset,
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -144,6 +183,7 @@ app.get("/:postUUID/comments", async (req, res) => {
 app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const postUUID = req.params.postUUID;
     const reactionUUID = req.params.reactionUUID;
+    let error = false;
 
     result = posts.findOne({
         where: {
@@ -152,7 +192,14 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
+
 
     const postId = result.id;
 
@@ -163,7 +210,13 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const reactionId = result.id;
 
@@ -176,9 +229,13 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
                 [Op.eq]: reactionId,
             },
         }
-    });
-
-    res.send(result ? "reaction deleted successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("reaction removed successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -187,6 +244,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
 app.get("/:postUUID/tags", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await posts.findOne({
         where: {
@@ -195,11 +253,17 @@ app.get("/:postUUID/tags", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return false;
 
     const postId = result.id;
 
-    result = await tagPostRelation.findAll({
+    await tagPostRelation.findAll({
         where: {
             "postId": {
                 [Op.eq]: postId,
@@ -208,9 +272,13 @@ app.get("/:postUUID/tags", async (req, res) => {
         limit: 10,
         offset: offset,
         include: "tagList",
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -219,6 +287,7 @@ app.get("/:postUUID/tags", async (req, res) => {
 app.get("/:tagUUID/posts", async (req, res) => {
     const tagUUID = req.params.tagUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await tagList.findOne({
         where: {
@@ -227,11 +296,17 @@ app.get("/:tagUUID/posts", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return false;
 
     const tagId = result.id;
 
-    result = await tagPostRelation.findAll({
+    await tagPostRelation.findAll({
         where: {
             "tagId": {
                 [Op.eq]: tagId,
@@ -240,9 +315,13 @@ app.get("/:tagUUID/posts", async (req, res) => {
         limit: 10,
         offset: offset,
         include: "posts",
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -252,6 +331,7 @@ app.get("/:tagUUID/posts", async (req, res) => {
 app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const postUUID = req.params.postUUID;
     const tagUUID = req.params.tagUUID;
+    let error = false;
 
     result = await posts.findOne({
         where: {
@@ -260,7 +340,13 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return false;
 
     const postId = result.id;
 
@@ -270,11 +356,17 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
                 [Op.eq]: tagUUID,
             },
         },
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return false;
 
     const tagId = result.id;
 
-    result = await tagPostRelation.destroy({
+    await tagPostRelation.destroy({
         where: {
             "postId": {
                 [Op.eq]: postId,
@@ -283,9 +375,13 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
                 [Op.eq]: tagId,
             },
         },
-    });
-
-    res.send(result ? "tag removed succesfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("tag removed successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -293,6 +389,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
 */
 app.get("/:postUUID/bookmarks/count", async (req, res) => {
     const postUUID = req.params.postUUID;
+    let error = false;
 
     result = await posts.findOne({
         where: {
@@ -301,17 +398,28 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return false;
 
     const postId = result.id;
 
-    result = await bookmarkPostRelation.findAll({
+    await bookmarkPostRelation.findAll({
         where: {
             "postId": postId,
         },
         attributes: ['id'],
-    });
-    res.send({ length: result.length });
+    })
+        .then((result) => {
+            res.send({ length: result.length });
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -319,6 +427,7 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
 */
 app.get("/:postUUID/bookmarks", async (req, res) => {
     const postUUID = req.params.postUUID;
+    let error = false;
 
     result = await posts.findOne({
         where: {
@@ -327,17 +436,28 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return false;
 
     const postId = result.id;
 
-    result = await bookmarkPostRelation.findAll({
+    await bookmarkPostRelation.findAll({
         where: {
             "postId": postId,
         },
         include: "profiles",
-    });
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -347,6 +467,7 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
 app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const postUUID = req.params.postUUID;
+    let error = false;
 
     result = await profiles.findOne({
         where: {
@@ -355,7 +476,13 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return false;
 
     const profileId = result.id;
 
@@ -366,11 +493,17 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return false;
 
     const postId = result.id;
 
-    result = await bookmarkPostRelation.findOne({
+    await bookmarkPostRelation.findOne({
         where: {
             "profileId": {
                 [Op.eq]: profileId,
@@ -379,9 +512,13 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
                 [Op.eq]: postId,
             },
         },
-    });
-
-    res.send({ "isBookmarked": !result.isEmpty });
+    })
+        .then((result) => {
+            res.send({ "isBookmarked": !result.isEmpty });
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 module.exports = app;

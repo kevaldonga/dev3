@@ -2,7 +2,7 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { tagList, hashtagFollowers, profiles } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorized, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { checkjwt, authorized, authorizedForProfileUUID, checkActiveUUID } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
@@ -11,13 +11,20 @@ app.use(bodyParser.json());
 * /:uuid - POST - create a tag
 * @check check active jwt, check if jwt matches request uri
 */
-app.post("/:uuid", checkjwt, authorized, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['tag', 'image', 'color', 'description'], mustBeNullFields: [...defaultNullFields, 'count', 'followerCount'] });
+app.post("/:uuid", checkjwt, authorized, checkActiveUUID, async (req, res) => {
+    value = nullCheck(body, {
+        nonNullableFields: ['tag', 'image', 'color', 'description'],
+        mustBeNullFields: [...defaultNullFields, 'count', 'followerCount']
+    });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
-    result = await tagList.create(req.body);
-
-    res.send(result ? "tag is created successfully!!" : "error occurred");
+    await tagList.create(req.body)
+        .then((result) => {
+            res.send("tag created successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -26,15 +33,19 @@ app.post("/:uuid", checkjwt, authorized, async (req, res) => {
 */
 app.delete("/:tagUUID", checkjwt, async (req, res) => {
     const tagUUID = req.params.tagUUID;
-    result = await tagList.destroy({
+    await tagList.destroy({
         where: {
             "uuid": {
                 [Op.eq]: tagUUID,
             },
         },
-    });
-
-    res.send(result ? "tag is deleted successfully!!" : "error occurred");
+    })
+        .then((result) => {
+            res.send("tag deleted successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -42,6 +53,7 @@ app.delete("/:tagUUID", checkjwt, async (req, res) => {
 */
 app.get("/:tagUUID", async (req, res) => {
     const tagUUID = req.params.tagUUID;
+    let error = false;
 
     result = await tagList.findOne({
         where: {
@@ -50,19 +62,29 @@ app.get("/:tagUUID", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const tagId = result.id;
 
-    result = await tagList.findOne({
+    await tagList.findOne({
         where: {
             "id": {
                 [Op.eq]: tagId,
             },
         },
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -71,6 +93,7 @@ app.get("/:tagUUID", async (req, res) => {
 app.get("/:tagUUID/followers", async (req, res) => {
     const tagUUID = req.params.tagUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await tagList.findOne({
         where: {
@@ -79,11 +102,17 @@ app.get("/:tagUUID/followers", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const tagId = result.id;
 
-    result = await hashtagFollowers.findAll({
+    await hashtagFollowers.findAll({
         where: {
             "tagId": {
                 [Op.eq]: tagId,
@@ -92,9 +121,13 @@ app.get("/:tagUUID/followers", async (req, res) => {
         limit: 10,
         offset: offset,
         include: "profiles"
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -104,6 +137,7 @@ app.get("/:tagUUID/followers", async (req, res) => {
 app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const tagUUID = req.params.tagUUID;
+    let error = false;
 
     result = await profiles.findOne({
         where: {
@@ -112,7 +146,13 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const profileId = result.id;
 
@@ -122,14 +162,15 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
                 [Op.eq]: tagUUID,
             },
         },
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const tagId = result.id;
-
-    result = await hashtagFollowers.create({
-        "profileId": profileId,
-        "hashtagId": tagId,
-    });
 
     // increment following count in a tagList
     await tagList.increment("followerCount", {
@@ -138,9 +179,24 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
                 [Op.eq]: tagId,
             },
         }
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
 
-    res.send(result ? "hashtag followed successfully!!" : "error occured");
+    if (error) return;
+
+    await hashtagFollowers.create({
+        "profileId": profileId,
+        "hashtagId": tagId,
+    })
+        .then((result) => {
+            res.send("hashtag followed successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -150,6 +206,7 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
 app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const tagUUID = req.params.hashtagUUID;
+    let error = false;
 
     result = await profiles.findOne({
         where: {
@@ -158,7 +215,13 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const profileId = result.id;
 
@@ -168,20 +231,15 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
                 [Op.eq]: tagUUID,
             },
         },
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const tagId = result.id;
-
-    result = await hashtagFollowers.destroy({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
-            },
-            "hashtagId": {
-                [Op.eq]: tagId,
-            },
-        },
-    });
 
     // decrement following count in a tagList
     await tagList.decrement("followerCount", {
@@ -190,9 +248,30 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
                 [Op.eq]: tagId,
             },
         }
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
 
-    res.send(result ? "hashtag unfollowed successfully!!" : "error occured");
+    if (error) return;
+
+    await hashtagFollowers.destroy({
+        where: {
+            "profileId": {
+                [Op.eq]: profileId,
+            },
+            "hashtagId": {
+                [Op.eq]: tagId,
+            },
+        },
+    })
+        .then((result) => {
+            res.send("hashtag unfollowed successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 module.exports = app;

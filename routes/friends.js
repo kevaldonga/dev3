@@ -12,6 +12,7 @@ app.use(bodyParser.json());
 app.get("/:profileUUID/followers", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await profiles.findOne({
         where: {
@@ -20,20 +21,30 @@ app.get("/:profileUUID/followers", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const profileId = result.id;
 
-    result = await friendsRelation.findAll({
+    await friendsRelation.findAll({
         where: {
             "beingFollowedProfileId": profileId,
         },
         limit: 10,
         offset: offset,
         include: "followers",
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -42,17 +53,24 @@ app.get("/:profileUUID/followers", async (req, res) => {
 app.get("/:profileUUID/followings", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await profiles.findOne({
         where: {
             uuid: profileUUID
         },
         attributes: ['id']
-    });
+    })
+        .catch((err) => {
+            error = true;
+            req.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     const profileId = result.id;
 
-    result = await friendsRelation.findAll({
+    await friendsRelation.findAll({
         where: {
             "followerProfileId": {
                 [Op.eq]: profileId,
@@ -61,9 +79,13 @@ app.get("/:profileUUID/followings", async (req, res) => {
         limit: 10,
         offset: offset,
         include: "followings"
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -73,6 +95,7 @@ app.get("/:profileUUID/followings", async (req, res) => {
 app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
+    let error = false;
 
     result = await profiles.findOne({
         where: {
@@ -81,7 +104,13 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (err) return;
 
     const profileId = result.id;
 
@@ -92,17 +121,16 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (err) return;
 
     const beingFollowedProfileId = result.id;
 
-    // update friendsRelation table
-    result = await friendsRelation.create({
-        "beingFollowedProfileId": beingFollowedProfileId,
-        "followerProfileId": profileId,
-    });
-
-    res.send(result ? "operation successful!!" : "error occured");
 
     // increment following count in a profile
     await profiles.increment("followings", {
@@ -111,7 +139,13 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
                 [Op.eq]: profileId,
             },
         }
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (err) return;
 
     // increment follower count in other profile
     await profiles.increment("followers", {
@@ -120,8 +154,25 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
                 [Op.eq]: beingFollowedProfileId,
             },
         }
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
 
+    if (err) return;
+
+    // update friendsRelation table
+    await friendsRelation.create({
+        "beingFollowedProfileId": beingFollowedProfileId,
+        "followerProfileId": profileId,
+    })
+        .then((result) => {
+            res.send("followed successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -131,6 +182,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
 app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
+    let error = false;
 
     result = await profiles.findOne({
         where: {
@@ -139,7 +191,13 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (err) return;
 
     const profileId = result.id;
 
@@ -150,17 +208,15 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (err) return;
 
     const beingFollowedProfileId = result.id;
-
-    // update friendsRelation table
-    result = await friendsRelation.destroy({
-        "followerProfileId": profileId,
-        "beingFollowedProfileId": beingFollowedProfileId,
-    });
-
-    res.send(result ? "operation successful!!" : "error occured");
 
     // decrement following count in a profile
     await profiles.decrement("followings", {
@@ -169,7 +225,13 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
                 [Op.eq]: profileId,
             },
         }
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (err) return;
 
     // decrement follower count in other a profile
     await profiles.decrement("followers", {
@@ -178,8 +240,25 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
                 [Op.eq]: profileId,
             },
         }
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
 
+    if (err) return;
+
+    // update friendsRelation table
+    result = await friendsRelation.destroy({
+        "followerProfileId": profileId,
+        "beingFollowedProfileId": beingFollowedProfileId,
+    })
+        .then((result) => {
+            res.send("unfollowed successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 module.exports = app;

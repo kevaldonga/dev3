@@ -14,6 +14,7 @@ app.use(bodyParser.json());
 app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     value = nullCheck(body, { nonNullableFields: ['comment', 'postId'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
+    let error = false;
 
     const profileUUID = req.params.profileUUID;
 
@@ -24,13 +25,23 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (error) return;
 
     req.body.profileId = result.id;
 
-    result = await comments.create(req.body);
-
-    res.send(result ? "comment created successfully!!" : "error occured");
+    await comments.create(req.body)
+        .then((result) => {
+            res.send("comment created successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -39,14 +50,19 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
 */
 app.get("/:commentUUID", checkjwt, async (req, res) => {
     const commentUUID = req.params.commentUUID;
-    result = await comments.findOne({
+    await comments.findOne({
         where: {
             "uuid": {
                 [Op.eq]: commentUUID,
             },
         },
-    });
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -58,14 +74,19 @@ app.put("/:commentUUID", checkjwt, async (req, res) => {
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     const commentUUID = req.params.commentUUID;
-    result = await comments.update(req.body, {
+    await comments.update(req.body, {
         where: {
             "uuid": {
                 [Op.eq]: commentUUID,
             },
         },
-    });
-    res.send(result ? "comment updated successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("comment updated successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /* 
@@ -74,14 +95,19 @@ app.put("/:commentUUID", checkjwt, async (req, res) => {
 */
 app.delete("/:commentUUID", checkjwt, async (req, res) => {
     const commentUUID = req.params.commentUUID;
-    result = await comments.destroy({
+    await comments.destroy({
         where: {
             "uuid": {
                 [Op.eq]: commentUUID,
             },
         },
-    });
-    res.send(result ? "comment deleted successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("comment deleted successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 
@@ -91,6 +117,7 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
 app.get("/:commentUUID/reactions", async (req, res) => {
     const commentUUID = req.params.commentUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    let error = false;
 
     result = await comments.findOne({
         where: {
@@ -99,11 +126,18 @@ app.get("/:commentUUID/reactions", async (req, res) => {
             },
         },
         attributes: ['id'],
-    });
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (err) return;
+
 
     const commentId = result.id;
 
-    result = await reactionOnComments.findAll({
+    await reactionOnComments.findAll({
         where: {
             "commentId": {
                 [Op.eq]: commentId,
@@ -111,9 +145,13 @@ app.get("/:commentUUID/reactions", async (req, res) => {
         },
         limit: 10,
         offset: offset,
-    });
-
-    res.send(result);
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 /*
@@ -123,6 +161,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
 app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) => {
     const commentUUID = req.params.commentUUID;
     const reactionUUID = req.params.reactionUUID;
+    let error = false;
 
     result = await comments.findOne({
         where: {
@@ -131,11 +170,18 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
             },
         },
         attributes: ['id'],
-    });
+    })
+
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err.message);
+        });
+
+    if (err) return;
 
     const commentId = result.id;
 
-    result = await reactionOnComments.findAll({
+    await reactionOnComments.findAll({
         where: {
             "commentId": {
                 [Op.eq]: commentId,
@@ -144,9 +190,13 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
                 [Op.eq]: reactionUUID,
             },
         },
-    });
-
-    res.send(result ? "reaction deleted successfully!!" : "error occured");
+    })
+        .then((result) => {
+            res.send("reaction removed successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
 });
 
 module.exports = app;
