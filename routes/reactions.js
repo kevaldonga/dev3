@@ -12,8 +12,8 @@ app.use(bodyParser.json())
 * @check check active jwt, check if jwt matches request uri
 */
 app.post("/:uuid", checkjwt, authorized, async (req, res) => {
-    value = nullCheck(res, body, { nonNullableFields: ['reaction'], mustBeNullFields: [...defaultNullFields] });
-    if (value) return;
+    value = nullCheck(body, { nonNullableFields: ['reaction'], mustBeNullFields: [...defaultNullFields] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     result = await reactions.create(req.body);
 

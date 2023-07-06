@@ -2,7 +2,7 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { bookmarkPostsRelation, profiles } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, authorizedForProfileId, addProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { checkjwt, addProfileId } = require('../middleware/jwtcheck');
 const { nullCheck } = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
@@ -12,8 +12,8 @@ app.use(bodyParser.json());
 * @check check active jwt, get profileId from payload and add it req.nody
 */
 app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
-    value = nullCheck(res, body, { nonNullableFields: ['profileId'] });
-    if (value) return;
+    value = nullCheck(body, { nonNullableFields: ['profileId'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     const profileId = req.body.profileId;
     const postUUID = req.params.postUUID;

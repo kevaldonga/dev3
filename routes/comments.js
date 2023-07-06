@@ -12,8 +12,8 @@ app.use(bodyParser.json());
 * @check check active jwt, check if jwt matches request uri, get profileId from payload and add it req.nody
 */
 app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
-    value = nullCheck(res, body, { nonNullableFields: ['comment', 'postId'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
-    if (value) return;
+    value = nullCheck(body, { nonNullableFields: ['comment', 'postId'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     const profileUUID = req.params.profileUUID;
 
@@ -54,8 +54,8 @@ app.get("/:commentUUID", checkjwt, async (req, res) => {
 * @check check active jwt, check if jwt matches request uri
 */
 app.put("/:commentUUID", checkjwt, async (req, res) => {
-    value = nullCheck(res, body, { nonNullableFields: ['comment'], mustBeNullFields: [...defaultNullFields, 'postId', 'profileId', 'reactionCount'] });
-    if (value) return;
+    value = nullCheck(body, { nonNullableFields: ['comment'], mustBeNullFields: [...defaultNullFields, 'postId', 'profileId', 'reactionCount'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     const commentUUID = req.params.commentUUID;
     result = await comments.update(req.body, {

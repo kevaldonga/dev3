@@ -27,6 +27,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   profiles.init({
+    // followers: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    // followings: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     userId: { type: DataTypes.INTEGER, unique: true },
     profileImg: { type: DataTypes.STRING, allowNull: true },
     name: { type: DataTypes.STRING, allowNull: false },

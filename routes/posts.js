@@ -16,9 +16,8 @@ app.use(bodyParser.json());
 * @check check active jwt, get profileId from payload and add it req.nody
 */
 app.post("/", checkjwt, addProfileId, async (req, res) => {
-    value = nullCheck(res, body, { nonNullableFields: ['profileId', 'title', 'media'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
-    if (value) return;
-
+    value = nullCheck(body, { nonNullableFields: ['profileId', 'title', 'media'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
     result = await posts.create(req.body);
 
     res.send(result ? "post created successfully!!" : "error occurred");
@@ -44,8 +43,8 @@ app.get("/:postUUID", async (req, res) => {
 * @check check active jwt
 */
 app.put("/:postUUID", checkjwt, async (req, res) => {
-    value = nullCheck(res, body, { mustBeNullFields: [...defaultNullFields, 'profileId', 'reactionCount'] });
-    if (value) return;
+    value = nullCheck(req.body, { mustBeNullFields: [...defaultNullFields, 'profileId', 'reactionCount'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     const postUUID = req.params.postUUID;
     result = await posts.update(req.body, {

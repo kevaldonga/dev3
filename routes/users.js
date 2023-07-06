@@ -31,8 +31,8 @@ app.get('/:uuid', checkjwt, async (req, res) => {
 * / - POST - create a user
 */
 app.post('/', async (req, res) => {
-    value = nullCheck(res, body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token'] });
-    if (value) return;
+    value = nullCheck(body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     result = await users.create(req.body);
     res.send(result ? "created successfully!!" : "error occured");
@@ -42,8 +42,8 @@ app.post('/', async (req, res) => {
 * /login - POST - login user
 */
 app.post('/login', async (req, res) => {
-    value = nullCheck(res, body, { nonNullableFields: ['username', 'password'] });
-    if (value) return;
+    value = nullCheck(body, { nonNullableFields: ['username', 'password'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     result = await users.findOne({
         where: {
@@ -69,8 +69,8 @@ app.post('/login', async (req, res) => {
 * @check check active jwt, check if jwt matches request uri
 */
 app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    value = nullCheck(res, body, { nonNullableFields: ['username'], mustBeNullFields: [...defaultNullFields, 'password'] });
-    if (value) return;
+    value = nullCheck(body, { nonNullableFields: ['username'], mustBeNullFields: [...defaultNullFields, 'password'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     const uuid = req.params.uuid;
     result = await users.update(req.body, {
@@ -88,8 +88,8 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
 * /:uuid/changePassword - PUT - change password
 */
 app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    value = nullCheck(res, body, { nonNullableFields: ['password'] });
-    if (value) return;
+    value = nullCheck(body, { nonNullableFields: ['password'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     if (!validatePassword(req.body.password, res)) {
         return;

@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   comments.init({
+    // comment: { type: DataTypes.STRING, allowNull: false },
     postId: { type: DataTypes.INTEGER, allowNull: false },
     profileId: { type: DataTypes.INTEGER, allowNull: false },
     reactionCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },

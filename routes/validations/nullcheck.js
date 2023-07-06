@@ -1,13 +1,12 @@
-const nullCheck = (res, body, { nonNullableFields, mustBeNullFields }) => {
-    if (emptyCheck(res, body)) {
-        return true;
+const nullCheck = (body, { nonNullableFields, mustBeNullFields }) => {
+    if (emptyCheck(body)) {
+        return "empty object !!";
     }
     if (nonNullableFields !== undefined) {
         for (let i = 0; i < nonNullableFields.length; i++) {
             let field = nonNullableFields[i];
             if (body[field] === undefined) {
-                res.status(403).send(`${field} is null - can't proceed!!`);
-                return true;
+                return `${field} is null - can't proceed!!`;
             }
         }
     }
@@ -15,17 +14,15 @@ const nullCheck = (res, body, { nonNullableFields, mustBeNullFields }) => {
         for (let i = 0; i < mustBeNullFields.length; i++) {
             let field = mustBeNullFields[i];
             if (body[field] !== undefined) {
-                res.status(403).send(`${field} is not changable from here - can't proceed!!`);
-                return true;
+                return `${field} is not changable from here - can't proceed!!`;
             }
         }
     }
     return false;
 }
 
-const emptyCheck = (res, body) => {
-    if (body.length == 0) {
-        res.send(403).send("empty json object !!");
+const emptyCheck = (body) => {
+    if (body == null) {
         return true;
     }
     return false;

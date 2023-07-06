@@ -28,8 +28,8 @@ app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
 * /:uuid - POST - create a user profile
 */
 app.post('/:uuid', async (req, res) => {
-    value = nullCheck(res, req.body, { nonNullableFields: ['userId', 'name'], mustBeNullFields: [...defaultNullFields, 'followers', 'followings'] });
-    if (value) return;
+    value = nullCheck(req.body, { nonNullableFields: ['userId', 'name'], mustBeNullFields: [...defaultNullFields, 'followers', 'followings'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     result = await profiles.create(req.body);
     res.send(result ? "created successfully!!" : "error occured");
@@ -40,8 +40,8 @@ app.post('/:uuid', async (req, res) => {
 * @check check active jwt
 */
 app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
-    value = nullCheck(res, req.body, { mustBeNullFields: [...defaultNullFields, 'followers', 'followings', 'userId'] });
-    if (value) return;
+    value = nullCheck(req.body, { mustBeNullFields: [...defaultNullFields, 'followers', 'followings', 'userId'] });
+    if (typeof (value) == 'string') return res.status(409).send(value);
 
     const profileUUID = req.params.profileUUID;
     result = await profiles.update(req.body, {

@@ -18,6 +18,7 @@ module.exports = (sequelize, DataTypes) => {
   users.init({
     username: { type: DataTypes.STRING, allowNull: false, validate: { len: [5, 60] }, unique: true },
     password: { type: DataTypes.STRING, allowNull: false },
+    // isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
     token: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV1 }
   }, {

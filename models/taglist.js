@@ -22,8 +22,8 @@ module.exports = (sequelize, DataTypes) => {
   }
   tagList.init({
     tag: { type: DataTypes.STRING, allowNull: false, validate: [5, 50] },
-    // to check how many times hastag is used
     count: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    // followerCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
   }, {
     sequelize,

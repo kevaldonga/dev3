@@ -26,6 +26,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   posts.init({
+    // media: { type: DataTypes.STRING, allowNull: false },
     profileId: { type: DataTypes.INTEGER, allowNull: false },
     title: { type: DataTypes.STRING, allowNull: false, validate: { len: [5, 100] } },
     description: { type: DataTypes.STRING, allowNull: true, validate: { len: [10, 255] } },
