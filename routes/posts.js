@@ -98,6 +98,7 @@ app.delete("/:postUUID", checkjwt, async (req, res) => {
 app.get("/:postUUID/reactions", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await posts.findOne({
@@ -123,7 +124,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
                 [Op.eq]: postId,
             },
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
     })
         .then((result) => {
@@ -140,6 +141,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
 app.get("/:postUUID/comments", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await posts.findOne({
@@ -165,7 +167,7 @@ app.get("/:postUUID/comments", async (req, res) => {
                 [Op.eq]: postId,
             },
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
     })
         .then((result) => {
@@ -244,6 +246,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
 app.get("/:postUUID/tags", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await posts.findOne({
@@ -269,7 +272,7 @@ app.get("/:postUUID/tags", async (req, res) => {
                 [Op.eq]: postId,
             },
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
         include: "tagList",
     })
@@ -287,6 +290,7 @@ app.get("/:postUUID/tags", async (req, res) => {
 app.get("/:tagUUID/posts", async (req, res) => {
     const tagUUID = req.params.tagUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await tagList.findOne({
@@ -312,7 +316,7 @@ app.get("/:tagUUID/posts", async (req, res) => {
                 [Op.eq]: tagId,
             },
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
         include: "posts",
     })

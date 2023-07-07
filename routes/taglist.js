@@ -93,6 +93,7 @@ app.get("/:tagUUID", async (req, res) => {
 app.get("/:tagUUID/followers", async (req, res) => {
     const tagUUID = req.params.tagUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await tagList.findOne({
@@ -118,7 +119,7 @@ app.get("/:tagUUID/followers", async (req, res) => {
                 [Op.eq]: tagId,
             },
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
         include: "profiles"
     })

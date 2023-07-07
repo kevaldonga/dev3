@@ -117,6 +117,7 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
 app.get("/:commentUUID/reactions", async (req, res) => {
     const commentUUID = req.params.commentUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await comments.findOne({
@@ -132,7 +133,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
             res.status(403).send(err.message);
         });
 
-    if (err) return;
+    if (error) return;
 
 
     const commentId = result.id;
@@ -143,7 +144,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
                 [Op.eq]: commentId,
             },
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
     })
         .then((result) => {

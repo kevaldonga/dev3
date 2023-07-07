@@ -92,6 +92,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
 app.get("/:categoryUUID/all", async (req, res) => {
     const categoryUUID = req.params.categoryUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     await categorOfPost.findAll({
         where: {
@@ -99,7 +100,7 @@ app.get("/:categoryUUID/all", async (req, res) => {
                 [Op.eq]: categoryUUID,
             },
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
         include: "posts",
     })

@@ -12,6 +12,7 @@ app.use(bodyParser.json());
 app.get("/:profileUUID/followers", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await profiles.findOne({
@@ -35,7 +36,7 @@ app.get("/:profileUUID/followers", async (req, res) => {
         where: {
             "beingFollowedProfileId": profileId,
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
         include: "followers",
     })
@@ -53,6 +54,7 @@ app.get("/:profileUUID/followers", async (req, res) => {
 app.get("/:profileUUID/followings", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await profiles.findOne({
@@ -76,7 +78,7 @@ app.get("/:profileUUID/followings", async (req, res) => {
                 [Op.eq]: profileId,
             },
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
         include: "followings"
     })

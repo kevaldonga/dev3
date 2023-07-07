@@ -98,6 +98,7 @@ app.delete('/:profileUUID', checkjwt, async (req, res) => {
 app.get("/:profileUUID/tags", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await profiles.findOne({
@@ -122,7 +123,7 @@ app.get("/:profileUUID/tags", async (req, res) => {
                 [Op.eq]: profileId,
             },
         },
-        limit: 10,
+        limit: limit,
         offset: offset,
         include: "tagList",
     })
