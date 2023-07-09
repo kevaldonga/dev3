@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model, Sequelize
+  Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class tagPostRelation extends Model {
@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
   tagPostRelation.init({
     tagId: { type: DataTypes.INTEGER, allowNull: false },
     postId: { type: DataTypes.INTEGER, allowNull: false },
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4 },
   }, {
     sequelize,
     modelName: 'tagPostRelation',

@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model, Sequelize
+  Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class tagList extends Model {
@@ -23,8 +23,8 @@ module.exports = (sequelize, DataTypes) => {
   tagList.init({
     tag: { type: DataTypes.STRING, allowNull: false, validate: [5, 50] },
     count: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-    // followerCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
+    followerCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4 },
   }, {
     sequelize,
     modelName: 'tagList',

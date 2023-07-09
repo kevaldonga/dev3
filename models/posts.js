@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model, Sequelize
+  Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class posts extends Model {
@@ -26,12 +26,12 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   posts.init({
-    // media: { type: DataTypes.STRING, allowNull: false },
+    media: { type: DataTypes.STRING, allowNull: false },
     profileId: { type: DataTypes.INTEGER, allowNull: false },
     title: { type: DataTypes.STRING, allowNull: false, validate: { len: [5, 100] } },
     description: { type: DataTypes.STRING, allowNull: true, validate: { len: [10, 255] } },
     reactionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4 },
   }, {
     sequelize,
     modelName: 'posts',

@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model, Sequelize
+  Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class reactions extends Model {
@@ -22,7 +22,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   reactions.init({
     reaction: { type: DataTypes.CHAR(2), allowNull: false },
-    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: Sequelize.UUIDV4 },
+    uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4 },
   }, {
     sequelize,
     modelName: 'reactions',

@@ -1,6 +1,6 @@
 'use strict';
 const {
-  Model, Sequelize
+  Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class friendsRelation extends Model {
@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
   friendsRelation.init({
     followerProfileId: { type: DataTypes.INTEGER, allowNull: false },
     beingFollowedProfileId: { type: DataTypes.INTEGER, allowNull: false },
-    uuid: { type: DataTypes.UUID, defaultValue: Sequelize.UUIDV4, allowNull: false }
+    uuid: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, allowNull: false }
   }, {
     sequelize,
     modelName: 'friendsRelation',
