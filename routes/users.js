@@ -87,14 +87,14 @@ app.post('/login', async (req, res) => {
 * @check check active jwt, check if jwt matches request uri
 */
 app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['username'], mustBeNullFields: [...defaultNullFields, 'password'] });
+    value = nullCheck(body, { nonNullableFields: ['username', 'token'], mustBeNullFields: [...defaultNullFields, 'password'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
-    const uuid = req.params.uuid;
+    const token = req.body.token;
     await users.update(req.body, {
         where: {
-            "uuid": {
-                [Op.eq]: uuid,
+            "token": {
+                [Op.eq]: token,
             },
         },
     })
@@ -111,34 +111,38 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
 * /:uuid/changePassword - PUT - change password
 */
 app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['password'] });
+    value = nullCheck(body, { nonNullableFields: ['password', 'token'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     if (!validatePassword(req.body.password, res)) {
         return;
     }
 
-    userdetails = await users.updatePassword(req.body.password, req.params.uuid);
+    const token = req.body.token;
+    const uuid = req.params.uuid;
+
+    userdetails = await users.updatePassword(req.body.password, uuid);
     userinfo = {
         'auth': userdetails.uuid,
         'auth2': req.userinfo.auth2,
         '_sa': req.userinfo._sa,
     };
     addUUID(userdetails.uuid);
-    removeUUID(req.params.uuid);
-    token = jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' });
+    removeUUID(uuid);
+    jwttoken = jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' });
     res.send(token);
 });
 
 /*
-* /:uuid - DELETE - delete a user by given uuid
+* /:uuid/:token - DELETE - delete a user by given uuid
 */
-app.delete('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
+app.delete('/:uuid/:token', checkjwt, async (req, res) => {
+    const token = req.params.token;
     const uuid = req.params.uuid;
     await users.destroy({
         where: {
-            "uuid": {
-                [Op.eq]: uuid,
+            "token": {
+                [Op.eq]: token,
             },
         },
     })

@@ -1,6 +1,6 @@
 ## TODOs after cloning repo
         1. change collation of reaction field in reactions table to utf16_bin
-
+        2. set uuid to index it in all tables.
 
 ## Routes Documentation Format
         /*

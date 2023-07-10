@@ -12,7 +12,7 @@ const bookmarkRouter = require('./routes/bookmarks');
 
 const PORT = 4000;
 
-let app = express();
+const app = express();
 
 app.use(bodyParser.json());
 
