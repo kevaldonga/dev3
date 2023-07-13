@@ -1,6 +1,6 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { users, hashtagModerators } = require('../models');
+const { users } = require('../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -8,6 +8,7 @@ const { checkjwt, authorized, checkActiveUUID } = require('../middleware/jwtchec
 const { validatePassword } = require('./validations/user');
 const { addUUID, removeUUID } = require('../middleware/uuidfileop');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
+const { roleCheck } = require('../middleware/rolecheck');
 const JWTPRIVATEKEY = 'FASTSPEED';
 
 app.use(bodyParser.json());
@@ -54,39 +55,11 @@ app.post('/', async (req, res) => {
 * @check check jwt signature, check uuid from txt file 
 */
 app.put("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res) => {
-    value = nullCheck(req.body, { nonNullableFields: ['hashtagId'] });
     const moderatorUUID = req.params.moderatorUUID;
     const uuid = req.userinfo.auth;
-    let error = false;
 
-    const result = adminCheck(uuid);
+    const result = roleCheck(uuid, 'admin');
     if (typeof (result) == 'string') return res.status(403).send(result);
-
-    result = await users.findOne({
-        where: {
-            "uuid": moderatorUUID,
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = false;
-            res.status(403).send(err);
-        });
-
-    if (error) return;
-
-    const userId = result.id;
-
-    await hashtagModerators.create({
-        "userId": userId,
-        "hashtagId": req.body.hashtagId,
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send(err);
-        });
-
-    if (error) return;
 
     await users.update({ "role": 'moderator' }, {
         where: {
@@ -112,40 +85,8 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
     const moderatorUUID = req.params.moderatorUUID;
     const uuid = req.userinfo.auth;
 
-    const result = adminCheck(uuid);
+    const result = roleCheck(uuid, 'admin');
     if (typeof (result) == 'string') return res.status(403).send(result);
-
-    result = await users.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: moderatorUUID,
-            },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = false;
-            res.status(403).send(err);
-        });
-
-    if (error) return;
-
-    const userId = result.id;
-
-    await hashtagModerators.destroy({
-        where: {
-            "userId": {
-                [Op.eq]: userId,
-            },
-            "hashtagId": {
-                [Op.eq]: hashtagId,
-            },
-        },
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send(err);
-        })
 
     await users.update({ "role": 'user' }, {
         where: {
@@ -310,27 +251,5 @@ app.delete('/:token', checkjwt, async (req, res) => {
             res.status(403).send(err);
         });
 });
-
-adminCheck = async (uuid) => {
-    try {
-        // check if user is admin
-        result = await users.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: uuid,
-                },
-            },
-            attributes: ['role'],
-        })
-    }
-    catch (err) {
-        return err.message;
-    }
-
-    const role = result.role;
-    if (role !== 'admin') {
-        return "forbidden";
-    }
-}
 
 module.exports = app;
