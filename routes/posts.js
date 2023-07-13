@@ -13,22 +13,22 @@ app.use(bodyParser.json());
 
 /* 
 * / - POST - create post
-* @check check active jwt, get profileId from payload and add it req.nody
+* @check check jwt signature, get profileId from payload and add it req.nody
 */
 app.post("/", checkjwt, addProfileId, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['profileId', 'title', 'media'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
+    value = nullCheck(req.body, { nonNullableFields: ['profileId', 'title', 'media'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
     await posts.create(req.body)
         .then((result) => {
             res.send("post created successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
-* /:postUUID - GET - get post by its id
+* /:postUUID - GET - get post
 */
 app.get("/:postUUID", async (req, res) => {
     const postUUID = req.params.postUUID;
@@ -43,13 +43,13 @@ app.get("/:postUUID", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /*
 * /:postUUID - PUT - update the post
-* @check check active jwt
+* @check check jwt signature
 */
 app.put("/:postUUID", checkjwt, async (req, res) => {
     value = nullCheck(req.body, { mustBeNullFields: [...defaultNullFields, 'profileId', 'reactionCount'] });
@@ -67,13 +67,13 @@ app.put("/:postUUID", checkjwt, async (req, res) => {
             res.send("post updated successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /*
 * /:postUUID - DELETE - delete the post
-* @check check active jwt
+* @check check jwt signature
 */
 app.delete("/:postUUID", checkjwt, async (req, res) => {
     const postUUID = req.params.postUUID;
@@ -88,7 +88,7 @@ app.delete("/:postUUID", checkjwt, async (req, res) => {
             res.send("post deleted successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -111,7 +111,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -131,7 +131,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -154,7 +154,7 @@ app.get("/:postUUID/comments", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -174,13 +174,13 @@ app.get("/:postUUID/comments", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:postUUID/reaction/:reactionId/profile/:profileUUID - DELETE - delete reaction on post
-* @check check active jwt
+* @check check jwt signature, match profileuuid of url with payload
 */
 app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const postUUID = req.params.postUUID;
@@ -197,7 +197,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -215,7 +215,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -236,7 +236,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
             res.send("reaction removed successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -259,7 +259,7 @@ app.get("/:postUUID/tags", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return false;
@@ -274,13 +274,13 @@ app.get("/:postUUID/tags", async (req, res) => {
         },
         limit: limit,
         offset: offset,
-        include: "tagList",
+        include: "tags",
     })
         .then((result) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -303,7 +303,7 @@ app.get("/:tagUUID/posts", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return false;
@@ -324,13 +324,13 @@ app.get("/:tagUUID/posts", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:postUUID/tag/:tagUUID/profile/:profileUUID - DELETE - delete tag in post
-* @check check active jwt
+* @check check jwt signature, match profile uuid of url with payload
 */
 app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const postUUID = req.params.postUUID;
@@ -347,7 +347,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return false;
@@ -363,12 +363,27 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return false;
 
     const tagId = result.id;
+
+    // increase tag used count
+    await tagList.decrement("count", {
+        where: {
+            "id": {
+                [Op.eq]: tagId,
+            },
+        }
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        });
+
+    if (err) return;
 
     await tagPostRelation.destroy({
         where: {
@@ -384,7 +399,76 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
             res.send("tag removed successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
+        });
+});
+
+/* 
+* /:postUUID/tag/:tagUUID/profile/:profileUUID - POST - add tag in post
+* @check check jwt signaure, match profile uuid of url with payload
+*/
+app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const postUUID = req.params.postUUID;
+    const tagUUID = req.params.tagUUID;
+    let error = false;
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        });
+
+    if (error) return false;
+
+    const postId = result.id;
+
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        });
+
+    if (error) return false;
+
+    const tagId = result.id;
+
+    // increase tag used count
+    await tagList.increment("count", {
+        where: {
+            "id": {
+                [Op.eq]: tagId,
+            },
+        }
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        });
+
+    if (error) return;
+
+    await tagPostRelation.create({
+        "tagId": tagId,
+        "postId": postId,
+    })
+        .then((result) => {
+            res.send("tag added successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err);
         });
 });
 
@@ -405,7 +489,7 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return false;
@@ -422,7 +506,7 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
             res.send({ length: result.length });
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -443,7 +527,7 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return false;
@@ -460,13 +544,13 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:profileUUID/isBookmarked/:postUUID - check if post is bookmarked or not
-* @check check active jwt
+* @check check jwt signature, match profile uuid of url with payload
 */
 app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
@@ -483,7 +567,7 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return false;
@@ -500,7 +584,7 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return false;
@@ -521,7 +605,7 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
             res.send({ "isBookmarked": !result.isEmpty });
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 

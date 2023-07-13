@@ -8,11 +8,11 @@ const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 app.use(bodyParser.json())
 
 /*
-* /:uuid - POST - create a reaction
+* / - POST - create a reaction
 * @check check active jwt, check if jwt matches request uri
 */
-app.post("/:uuid", checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['reaction'], mustBeNullFields: [...defaultNullFields] });
+app.post("/", checkjwt, checkActiveUUID, async (req, res) => {
+    value = nullCheck(req.body, { nonNullableFields: ['reaction'], mustBeNullFields: [...defaultNullFields] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     await reactions.create(req.body)
@@ -20,7 +20,7 @@ app.post("/:uuid", checkjwt, authorized, checkActiveUUID, async (req, res) => {
             res.send("reaction created successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -41,7 +41,7 @@ app.get("/:reactionUUID", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -49,7 +49,7 @@ app.get("/:reactionUUID", async (req, res) => {
 * /:reactionUUID - DELETE - delete a reaction
 * @check check active jwt
 */
-app.delete("/:reactionUUID", checkjwt, async (req, res) => {
+app.delete("/:reactionUUID", checkjwt, checkActiveUUID, async (req, res) => {
     const reactionUUID = req.params.reactionUUID;
 
     await reactions.destroy({
@@ -63,7 +63,7 @@ app.delete("/:reactionUUID", checkjwt, async (req, res) => {
             res.send("reaction removed successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 

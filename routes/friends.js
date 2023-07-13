@@ -25,7 +25,7 @@ app.get("/:profileUUID/followers", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -44,7 +44,7 @@ app.get("/:profileUUID/followers", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -65,7 +65,7 @@ app.get("/:profileUUID/followings", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            req.status(403).send(err.message);
+            req.status(403).send(err);
         });
 
     if (error) return;
@@ -86,13 +86,13 @@ app.get("/:profileUUID/followings", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:profileUUID/follows/:beingFollowedProfileUUID - POST - user follows other user
-* @check check active jwt, check if profile uuid matches
+* @check check jwt signature, match profileuuid of url with payload
 */
 app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
@@ -109,7 +109,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (err) return;
@@ -126,7 +126,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (err) return;
@@ -144,7 +144,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (err) return;
@@ -159,7 +159,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (err) return;
@@ -173,13 +173,13 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
             res.send("followed successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:profileUUID/follows/:beingFollowedProfileUUID - DELETE - user unfollows other user
-* @check check active jwt, check if profile uuid matches
+* @check check jwt signature, match profile uuid of url with payload
 */
 app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
@@ -196,7 +196,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (err) return;
@@ -213,7 +213,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (err) return;
@@ -230,7 +230,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (err) return;
@@ -245,7 +245,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (err) return;
@@ -259,7 +259,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
             res.send("unfollowed successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 

@@ -44,7 +44,7 @@ const addProfileId = (req, res, next) => {
 }
 
 const checkActiveUUID = (req, res, next) => {
-    const myuuid = req.params.uuid;
+    const myuuid = req.userinfo.auth;
 
     const fileStream = fs.createReadStream(`${__dirname}/uuids.txt`);
     const rl = readline.createInterface({

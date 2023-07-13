@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 
 /*
 * /:postUUID - GET - get category(s) of a post by postId 
-* @check check active jwt
+* @check check jwt singnature
 */
 app.get("/:postUUID", async (req, res) => {
     const postUUID = req.params.postUUID;
@@ -24,7 +24,7 @@ app.get("/:postUUID", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -42,13 +42,13 @@ app.get("/:postUUID", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:categoryUUID - DELETE - remove category of post by uuid
-* @check check active jwt
+* @check check jwt signature
 */
 app.delete("/:categoryUUID", checkjwt, async (req, res) => {
     const categoryUUID = req.params.categoryUUID;
@@ -64,16 +64,16 @@ app.delete("/:categoryUUID", checkjwt, async (req, res) => {
             res.send("category removed");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:profileUUID - POST - create category
-* @check check active jwt, check if jwt matches request uri
+* @check check jwt signature, match profileuuid of url with payload
 */
 app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['type', 'postId'], mustBeNullFields: [...defaultNullFields] });
+    value = nullCheck(req.body, { nonNullableFields: ['type', 'postId'], mustBeNullFields: [...defaultNullFields] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     await categorOfPost.create(req.body)
@@ -81,13 +81,12 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
             res.send("category created successfully !!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:categoryUUID/all - GET - get all post of category
-* @check check active jwt
 */
 app.get("/:categoryUUID/all", async (req, res) => {
     const categoryUUID = req.params.categoryUUID;
@@ -108,7 +107,7 @@ app.get("/:categoryUUID/all", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 

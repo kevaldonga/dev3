@@ -3,24 +3,24 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class tagUserRelation extends Model {
+  class hashtagModerators extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.belongsTo(models.tagList, { foreignKey: "tagId", as: "tags" });
-      this.belongsTo(models.profiles);
+      this.belongsTo(models.users);
+      this.belongsTo(models.tagList);
     }
   }
-  tagUserRelation.init({
-    tagId: { type: DataTypes.INTEGER, allowNull: false },
-    profileId: { type: DataTypes.INTEGER, allowNull: false },
+  hashtagModerators.init({
+    userId: { type: DataTypes.INTEGER, allowNull: false },
+    hashtagId: { type: DataTypes.INTEGER, allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4 },
   }, {
     sequelize,
-    modelName: 'tagUserRelation',
+    modelName: 'hashtagModerators',
   });
-  return tagUserRelation;
+  return hashtagModerators;
 };

@@ -2,17 +2,17 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { bookmarkPostsRelation, profiles } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, addProfileId } = require('../middleware/jwtcheck');
+const { checkjwt, addProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 const { nullCheck } = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
 
 /*
 * /:postUUID - POST - add a post to bookmark
-* @check check active jwt, get profileId from payload and add it req.nody
+* @check check jwt signature, get profileId from payload and add it req.nody
 */
 app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['profileId'] });
+    value = nullCheck(req.body, { nonNullableFields: ['profileId'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
     let error = false;
 
@@ -29,7 +29,7 @@ app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -41,16 +41,16 @@ app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
             res.send("added post to bookmark!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /*
-* /posts - GET -  bookmarked posts
-* @check check active jwt, check if profile uuid matches
+* /posts/:profileUUID - GET -  bookmarked posts
+* @check check jwt signature, match profile uuid from url with payload
 */
-app.get("/posts", checkjwt, async (req, res) => {
-    const profileUUID = req.userinfo.auth2;
+app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
@@ -61,12 +61,12 @@ app.get("/posts", checkjwt, async (req, res) => {
                 [Op.eq]: profileUUID,
             },
         },
-        include: "tagLists",
+        include: "tags",
         attributes: ['id'],
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -87,13 +87,13 @@ app.get("/posts", checkjwt, async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:bookmarkId - DELETE - remove a bookmark on a post by given uuid
-* @check check active jwt
+* @check check jwt signature
 */
 app.delete("/:bookmarkUUID", checkjwt, async (req, res) => {
     const bookmarkUUID = req.params.bookmarkUUID;
@@ -108,7 +108,7 @@ app.delete("/:bookmarkUUID", checkjwt, async (req, res) => {
             res.send("bookmark removed successfully !!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 

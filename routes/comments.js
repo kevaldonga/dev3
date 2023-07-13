@@ -9,10 +9,10 @@ app.use(bodyParser.json());
 
 /* 
 * /:profileUUID - POST - create a comment
-* @check check active jwt, check if jwt matches request uri, get profileId from payload and add it req.nody
+* @check check jwt signature,match profileuuid of url with payloadoad
 */
 app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['comment', 'postId'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
+    value = nullCheck(req.body, { nonNullableFields: ['comment', 'postId'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
     let error = false;
 
@@ -28,7 +28,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -40,13 +40,13 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
             res.send("comment created successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
-* /:id - GET - get a comment by id
-* @check check active jwt
+* /:id - GET - get a comment
+* @check check jwt signature
 */
 app.get("/:commentUUID", checkjwt, async (req, res) => {
     const commentUUID = req.params.commentUUID;
@@ -61,16 +61,16 @@ app.get("/:commentUUID", checkjwt, async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
-* /:commentUUID - PUT - update a comment by id
-* @check check active jwt, check if jwt matches request uri
+* /:commentUUID - PUT - update a comment
+* @check check jwt signature
 */
 app.put("/:commentUUID", checkjwt, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['comment'], mustBeNullFields: [...defaultNullFields, 'postId', 'profileId', 'reactionCount'] });
+    value = nullCheck(req.body, { nonNullableFields: ['comment'], mustBeNullFields: [...defaultNullFields, 'postId', 'profileId', 'reactionCount'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     const commentUUID = req.params.commentUUID;
@@ -85,13 +85,13 @@ app.put("/:commentUUID", checkjwt, async (req, res) => {
             res.send("comment updated successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
-* /:commentUUID - DELETE - delete a comment by id
-* @check check active jwt, check if jwt matches request uri
+* /:commentUUID - DELETE - delete a comment
+* @check check jwt signature
 */
 app.delete("/:commentUUID", checkjwt, async (req, res) => {
     const commentUUID = req.params.commentUUID;
@@ -106,7 +106,7 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
             res.send("comment deleted successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -130,7 +130,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -151,13 +151,13 @@ app.get("/:commentUUID/reactions", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /*
 * /:commentUUID/reaction/:reactionUUID - DELETE - delete a reaction on a comment
-* @check check active jwt
+* @check check jwt signature
 */
 app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) => {
     const commentUUID = req.params.commentUUID;
@@ -175,7 +175,7 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
 
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (err) return;
@@ -196,7 +196,7 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
             res.send("reaction removed successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 

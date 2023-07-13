@@ -1,6 +1,6 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { users } = require('../models');
+const { users, hashtagModerators } = require('../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -14,6 +14,7 @@ app.use(bodyParser.json());
 
 /*
 * /:uuid - GET - get a user
+* @check check jwt signature
 */
 app.get('/:uuid', checkjwt, async (req, res) => {
     const uuid = req.params.uuid;
@@ -28,7 +29,7 @@ app.get('/:uuid', checkjwt, async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -36,7 +37,7 @@ app.get('/:uuid', checkjwt, async (req, res) => {
 * / - POST - create a user
 */
 app.post('/', async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token'] });
+    value = nullCheck(req.body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token', 'role'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     await users.create(req.body)
@@ -44,7 +45,121 @@ app.post('/', async (req, res) => {
             res.send("user created successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
+        });
+});
+
+/* 
+* /moderator/:moderatorUUID - PUT - promote user to moderator
+* @check check jwt signature, check uuid from txt file 
+*/
+app.put("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res) => {
+    value = nullCheck(req.body, { nonNullableFields: ['hashtagId'] });
+    const moderatorUUID = req.params.moderatorUUID;
+    const uuid = req.userinfo.auth;
+    let error = false;
+
+    const result = adminCheck(uuid);
+    if (typeof (result) == 'string') return res.status(403).send(result);
+
+    result = await users.findOne({
+        where: {
+            "uuid": moderatorUUID,
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = false;
+            res.status(403).send(err);
+        });
+
+    if (error) return;
+
+    const userId = result.id;
+
+    await hashtagModerators.create({
+        "userId": userId,
+        "hashtagId": req.body.hashtagId,
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        });
+
+    if (error) return;
+
+    await users.update({ "role": 'moderator' }, {
+        where: {
+            "uuid": {
+                [Op.eq]: moderatorUUID,
+            },
+        },
+    })
+        .then((result) => {
+            res.send("user promoted to moderator successfully!!");
+        })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        });
+});
+
+/* 
+* /moderator/:moderatorUUID - PUT - demote user from moderator
+* @check check jwt signature, check uuid from txt file 
+*/
+app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res) => {
+    const moderatorUUID = req.params.moderatorUUID;
+    const uuid = req.userinfo.auth;
+
+    const result = adminCheck(uuid);
+    if (typeof (result) == 'string') return res.status(403).send(result);
+
+    result = await users.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: moderatorUUID,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = false;
+            res.status(403).send(err);
+        });
+
+    if (error) return;
+
+    const userId = result.id;
+
+    await hashtagModerators.destroy({
+        where: {
+            "userId": {
+                [Op.eq]: userId,
+            },
+            "hashtagId": {
+                [Op.eq]: hashtagId,
+            },
+        },
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        })
+
+    await users.update({ "role": 'user' }, {
+        where: {
+            "uuid": {
+                [Op.eq]: moderatorUUID,
+            },
+        },
+    })
+        .then((result) => {
+            res.send("user demoted from moderator successfully!!");
+        })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
         });
 });
 
@@ -52,9 +167,10 @@ app.post('/', async (req, res) => {
 * /login - POST - login user
 */
 app.post('/login', async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['username', 'password'] });
+    value = nullCheck(req.body, { nonNullableFields: ['username', 'password'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
     let error = false;
+    const role = req.body.role;
 
     result = await users.findOne({
         where: {
@@ -66,7 +182,7 @@ app.post('/login', async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -74,6 +190,9 @@ app.post('/login', async (req, res) => {
     checked = await bcrypt.compare(req.body.password, result.password);
     if (checked) {
         let userObj = { auth: result.uuid, auth2: result.profiles.uuid, _sa: result.profiles.id };
+        if (role !== 'user' && role !== undefined) {
+            userObj['role'] = role;
+        }
         let jt = jwt.sign(userObj, JWTPRIVATEKEY, { 'expiresIn': '30D' });
         addUUID(result.uuid);
         res.send(jt);
@@ -84,10 +203,10 @@ app.post('/login', async (req, res) => {
 
 /*
 * /:uuid - PUT - update a user
-* @check check active jwt, check if jwt matches request uri
+* @check check jwt signature, match uuid of url with payload, check uuid from txt file
 */
 app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['username', 'token'], mustBeNullFields: [...defaultNullFields, 'password'] });
+    value = nullCheck(req.body, { nonNullableFields: ['username', 'token'], mustBeNullFields: [...defaultNullFields, 'password', 'role'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
 
     const token = req.body.token;
@@ -102,24 +221,42 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
             res.send("user updated successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 
 /* 
-* /:uuid/changePassword - PUT - change password
+* /:token/changePassword - PUT - change password
+* @check check jwt signature, match uuid of url with payload, check uuid from txt file
 */
-app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    value = nullCheck(body, { nonNullableFields: ['password', 'token'] });
+app.put('/:token/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
+    value = nullCheck(req.body, { nonNullableFields: ['password', 'token'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
+    let error = false;
 
     if (!validatePassword(req.body.password, res)) {
         return;
     }
 
     const token = req.body.token;
-    const uuid = req.params.uuid;
+
+    result = await users.findOne({
+        where: {
+            "token": {
+                [Op.eq]: token,
+            },
+        },
+        attributes: ['uuid'],
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        });
+
+    if (error) return;
+
+    const uuid = result.uuid;
 
     userdetails = await users.updatePassword(req.body.password, uuid);
     userinfo = {
@@ -134,11 +271,30 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
 });
 
 /*
-* /:uuid/:token - DELETE - delete a user by given uuid
+* /:token - DELETE - delete a user by given uuid
+* @check check jwt signature
 */
-app.delete('/:uuid/:token', checkjwt, async (req, res) => {
+app.delete('/:token', checkjwt, async (req, res) => {
     const token = req.params.token;
-    const uuid = req.params.uuid;
+    let error = false;
+
+    result = await users.findOne({
+        where: {
+            "token": {
+                [Op.eq]: token,
+            },
+        },
+        attributes: ['uuid'],
+    })
+        .catch((err) => {
+            error = false;
+            res.status(403).send(err);
+        });
+
+    if (error) return;
+
+    const uuid = result.uuid;
+
     await users.destroy({
         where: {
             "token": {
@@ -151,8 +307,30 @@ app.delete('/:uuid/:token', checkjwt, async (req, res) => {
             res.send("user deleted successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
+
+adminCheck = async (uuid) => {
+    try {
+        // check if user is admin
+        result = await users.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: uuid,
+                },
+            },
+            attributes: ['role'],
+        })
+    }
+    catch (err) {
+        return err.message;
+    }
+
+    const role = result.role;
+    if (role !== 'admin') {
+        return "forbidden";
+    }
+}
 
 module.exports = app;

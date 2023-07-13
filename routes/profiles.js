@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 
 /*
 * /:profileId - GET - get a user profile
-* @check check active jwt, match profile uuid
+* @check check jwt signature, match profile uuid of url with payload
 */
 app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
@@ -25,7 +25,7 @@ app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -41,13 +41,13 @@ app.post('/:uuid', async (req, res) => {
             res.send("profile created successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /*
 * /:profileUUID - PUT - update a user profile
-* @check check active jwt
+* @check check jwt signature, match profile uuid of url with payload
 */
 app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
     value = nullCheck(req.body, { mustBeNullFields: [...defaultNullFields, 'followers', 'followings', 'userId'] });
@@ -65,14 +65,14 @@ app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
             res.send("profile updated successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 
 /*
 * /:profileUUID - DELETE - delete a user profile by given uuid
-* @check check active jwt
+* @check check jwt signature
 */
 app.delete('/:profileUUID', checkjwt, async (req, res) => {
     const profileUUID = req.params.profileUUID;
@@ -87,7 +87,7 @@ app.delete('/:profileUUID', checkjwt, async (req, res) => {
             res.send("profile deleted successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -111,7 +111,7 @@ app.get("/:profileUUID/tags", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
     if (error) return;
 
@@ -125,19 +125,19 @@ app.get("/:profileUUID/tags", async (req, res) => {
         },
         limit: limit,
         offset: offset,
-        include: "tagList",
+        include: "tags",
     })
         .then((result) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:profileUUID/tags/:tagUUID - POST - add tag inside profile
-* @check check active jwt, check if jwt matches request uri
+* @check check jwt signature, match profile uuid of url with payload
 */
 app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
@@ -154,7 +154,7 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err.message);
+            res.status(409).send(err);
         });
 
     if (error) return;
@@ -171,13 +171,14 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err.message);
+            res.status(409).send(err);
         });
 
     if (error) return;
 
 
     const profileId = result.id;
+
     // increment used count in taglist 
     await tagList.increment("count", {
         where: {
@@ -188,32 +189,26 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
 
     await tagUserRelation.create({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
-            },
-            "tagId": {
-                [Op.eq]: tagId,
-            },
-        },
+        "profileId": profileId,
+        "tagId": tagId,
     })
         .then((result) => {
             res.send("tag added successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:profileUUID/tags/:tagUUID - DELETE - delete tag inside profile
-* @check check active jwt, check if jwt matches request uri
+* @check check jwt signature, match profile uuid of url with payload
 */
 app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
@@ -230,7 +225,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -247,7 +242,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -265,7 +260,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -284,7 +279,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
             res.send("tag removed successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 

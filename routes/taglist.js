@@ -9,10 +9,10 @@ app.use(bodyParser.json());
 
 /* 
 * /:uuid - POST - create a tag
-* @check check active jwt, check if jwt matches request uri
+* @check check jwt signature, match uuid of url with payload, check uuid from txt file
 */
 app.post("/:uuid", checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    value = nullCheck(body, {
+    value = nullCheck(req.body, {
         nonNullableFields: ['tag', 'image', 'color', 'description'],
         mustBeNullFields: [...defaultNullFields, 'count', 'followerCount']
     });
@@ -23,13 +23,13 @@ app.post("/:uuid", checkjwt, authorized, checkActiveUUID, async (req, res) => {
             res.send("tag created successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:tagUUID - DELETE - delete a tag
-* @check check active jwt
+* @check check jwt signature
 */
 app.delete("/:tagUUID", checkjwt, async (req, res) => {
     const tagUUID = req.params.tagUUID;
@@ -44,7 +44,7 @@ app.delete("/:tagUUID", checkjwt, async (req, res) => {
             res.send("tag deleted successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -65,7 +65,7 @@ app.get("/:tagUUID", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -83,7 +83,7 @@ app.get("/:tagUUID", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -106,7 +106,7 @@ app.get("/:tagUUID/followers", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -127,13 +127,13 @@ app.get("/:tagUUID/followers", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:profileUUID/follows/:tagUUID - POST - user follows tag
-* @check check jwt token, check if profile uuid matches
+* @check check jwt signature, match profile uuid of url with payload
 */
 app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
@@ -150,7 +150,7 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -166,7 +166,7 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -183,7 +183,7 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -196,13 +196,13 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
             res.send("hashtag followed successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
 /* 
 * /:profileUUID/unfollows/:tagUUID - DELETE - user unfollows tag
-* @check check jwt token, check if profile uuid matches
+* @check check jwt signature, match profile uuid of url with payload
 */
 app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
@@ -219,7 +219,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -235,7 +235,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -252,7 +252,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 
     if (error) return;
@@ -271,7 +271,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
             res.send("hashtag unfollowed successfully!!");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
