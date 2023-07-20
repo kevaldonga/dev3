@@ -2,7 +2,7 @@ const app = require('express').Router();
 const bodyParser = require('body-parser');
 const { tagList, hashtagFollowers, profiles, hashtagModerators } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, checkActiveUUID, authorized } = require('../middleware/jwtcheck');
+const { checkjwt, checkActiveUUID, authorizedForProfileUUID, authorized } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { authorizedAsModerator } = require('./../middleware/rolecheck');
 

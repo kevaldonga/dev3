@@ -7,6 +7,9 @@ const process = require('process');
 const basename = path.basename(__filename);
 const env = process.env.NODE_ENV || 'development';
 const config = require(__dirname + '/../config/config.json')[env];
+if (env == 'production') {
+  config.username = process.env.DBUR; config.password = process.env.DBPW; config.database = 'dev3';
+}
 const db = {};
 
 let sequelize;

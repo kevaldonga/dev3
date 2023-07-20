@@ -10,7 +10,7 @@ const commentRouter = require('./routes/comments');
 const categoryRouter = require('./routes/categories');
 const bookmarkRouter = require('./routes/bookmarks');
 
-const PORT = 4000;
+const PORT = process.env.PORT || 5000;
 
 const app = express();
 
@@ -45,4 +45,4 @@ app.use("/categories", categoryRouter);
 // comments
 app.use("/comments", commentRouter);
 
-app.listen(PORT, () => { console.log('server is running...') });
+app.listen(PORT, () => { console.log(`server is running on ${PORT}`) });
