@@ -168,10 +168,10 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
 
 
 /* 
-* /:token/changePassword - PUT - change password
+* /:uuid/changePassword - PUT - change password
 * @check check jwt signature, match uuid of url with payload, check uuid from txt file
 */
-app.put('/:token/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
+app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['password', 'token'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
     let error = false;
