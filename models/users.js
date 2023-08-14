@@ -17,6 +17,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   users.init({
     username: { type: DataTypes.STRING, allowNull: false, validate: { len: [5, 60] }, unique: true },
+    email: { type: DataTypes.STRING, allowNull: false, unique: true },
     role: { type: DataTypes.ENUM('user', 'admin', 'moderator'), allowNull: false, defaultValue: 'user' },
     password: { type: DataTypes.STRING, allowNull: false },
     isActive: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },

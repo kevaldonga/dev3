@@ -17,7 +17,7 @@ app.post("/", checkjwt, checkActiveUUID, async (req, res) => {
 
     await reactions.create(req.body)
         .then((result) => {
-            res.send("reaction created successfully!!");
+            res.send(result);
         })
         .catch((err) => {
             res.status(403).send(err);

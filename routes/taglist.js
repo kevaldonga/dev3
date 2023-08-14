@@ -24,7 +24,7 @@ app.post("/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, async (req,
 
     await tagList.create(req.body)
         .then((result) => {
-            res.send("tag created successfully!!");
+            res.send(result);
         })
         .catch((err) => {
             res.status(403).send(err);

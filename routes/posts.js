@@ -20,7 +20,7 @@ app.post("/", checkjwt, addProfileId, async (req, res) => {
     if (typeof (value) == 'string') return res.status(409).send(value);
     await posts.create(req.body)
         .then((result) => {
-            res.send("post created successfully!!");
+            res.send(result);
         })
         .catch((err) => {
             res.status(403).send(err);

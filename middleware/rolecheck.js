@@ -1,3 +1,6 @@
+const { users } = require('../models');
+const { Op } = require('sequelize');
+
 const authorizedAsAdmin = (req, res, next) => {
     if (req.userinfo.role === 'admin') {
         next();
@@ -31,7 +34,7 @@ roleCheck = async (uuid, role) => {
         return err.message;
     }
 
-    if (rsult.role !== role) {
+    if (result.role !== role) {
         return "forbidden";
     }
 }

@@ -43,7 +43,7 @@ app.post('/', async (req, res) => {
 
     await users.create(req.body)
         .then((result) => {
-            res.send("user created successfully!!");
+            res.send(result);
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -172,13 +172,12 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
 * @check check jwt signature, match uuid of url with payload, check uuid from txt file
 */
 app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
-    value = nullCheck(req.body, { nonNullableFields: ['password', 'token'] });
+    value = nullCheck(req.body, { nonNullableFields: ['newPassword', 'oldPassword', 'token'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
     let error = false;
 
-    if (!validatePassword(req.body.password, res)) {
-        return;
-    }
+    const oldPassword = req.body.oldPassword;
+    const newPassword = req.body.newPassword;
 
     const token = req.body.token;
 
@@ -188,7 +187,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
                 [Op.eq]: token,
             },
         },
-        attributes: ['uuid'],
+        attributes: ['uuid', 'password'],
     })
         .catch((err) => {
             error = true;
@@ -199,7 +198,14 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
 
     const uuid = result.uuid;
 
-    userdetails = await users.updatePassword(req.body.password, uuid);
+    checked = await bcrypt.compare(oldPassword, result.password);
+
+    if (!checked || !validatePassword(oldPassword)) {
+        res.status(403).send("invalid password!!");
+        return;
+    }
+
+    userdetails = await users.updatePassword(newPassword, uuid);
     userinfo = {
         'auth': userdetails.uuid,
         'auth2': req.userinfo.auth2,
@@ -208,7 +214,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
     addUUID(userdetails.uuid);
     removeUUID(uuid);
     jwttoken = jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' });
-    res.send(token);
+    res.send(jwttoken);
 });
 
 /*

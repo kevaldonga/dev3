@@ -9,10 +9,17 @@ const tagListRouter = require('./routes/taglist');
 const commentRouter = require('./routes/comments');
 const categoryRouter = require('./routes/categories');
 const bookmarkRouter = require('./routes/bookmarks');
+const cors = require('cors');
+const PORT = 5000; //process.env.PORT || 5000;
 
-const PORT = process.env.PORT || 5000;
-
+// const cors = require('cors');
 const app = express();
+
+const corsOption = {
+    origin: ['http://localhost:4000'],
+};
+
+app.use(cors(corsOption));
 
 app.use(bodyParser.json());
 

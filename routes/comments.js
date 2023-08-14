@@ -37,7 +37,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
 
     await comments.create(req.body)
         .then((result) => {
-            res.send("comment created successfully!!");
+            res.send(result);
         })
         .catch((err) => {
             res.status(403).send(err);

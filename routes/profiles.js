@@ -38,7 +38,7 @@ app.post('/:uuid', async (req, res) => {
 
     await profiles.create(req.body)
         .then((result) => {
-            res.send("profile created successfully!!");
+            res.send(result);
         })
         .catch((err) => {
             res.status(403).send(err);
