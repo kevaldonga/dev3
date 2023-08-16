@@ -130,12 +130,13 @@ app.post('/login', async (req, res) => {
 
     checked = await bcrypt.compare(req.body.password, result.password);
     if (checked) {
-        let userObj = { auth: result.uuid, auth2: result.profiles.uuid, _sa: result.profiles.id };
+        let userObj = { auth: result.uuid, auth2gut: result.profiles.uuid, _sa: result.profiles.id };
         if (role !== 'user' && role !== undefined) {
             userObj['role'] = role;
         }
         let jt = jwt.sign(userObj, JWTPRIVATEKEY, { 'expiresIn': '30D' });
         addUUID(result.uuid);
+        res.cookie('accessToken', jt, { path: '/', httpOnly: true, secure: true });
         res.send(jt);
     } else {
         res.status(403).send('Invalid');

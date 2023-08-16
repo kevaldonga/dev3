@@ -12,11 +12,11 @@ const bookmarkRouter = require('./routes/bookmarks');
 const cors = require('cors');
 const PORT = 5000; //process.env.PORT || 5000;
 
-// const cors = require('cors');
 const app = express();
 
 const corsOption = {
     origin: ['http://localhost:4000'],
+    credentials: true,
 };
 
 app.use(cors(corsOption));
