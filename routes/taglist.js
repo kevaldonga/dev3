@@ -9,10 +9,10 @@ const { authorizedAsModerator } = require('./../middleware/rolecheck');
 app.use(bodyParser.json());
 
 /* 
-* /:uuid - POST - create a tag
+* /moderator/:uuid - POST - create a tag
 * @check check jwt signature, match uuid of url with payload, check uuid from txt file
 */
-app.post("/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, async (req, res) => {
+app.post("/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, async (req, res) => {
     value = nullCheck(req.body, {
         nonNullableFields: ['tag', 'image', 'color', 'description'],
         mustBeNullFields: [...defaultNullFields, 'count', 'followerCount']
@@ -32,10 +32,11 @@ app.post("/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, async (req,
 });
 
 /* 
-* /:uuid - PUT - update a tag
+* /:tagUUID/moderator/:uuid - PUT - update a tag
 * @check check jwt signature, match uuid of url with payload, check uuid from txt file
 */
-app.put("/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, async (req, res) => {
+app.put("/:tagUUID/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, async (req, res) => {
+    const tagUUID = req.params.tagUUID;
     value = nullCheck(req.body, {
         nonNullableFields: ['image', 'color', 'description'],
         mustBeNullFields: [...defaultNullFields, 'count', 'followerCount', 'tag']
@@ -45,9 +46,20 @@ app.put("/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, async (req, 
     const result = roleCheck(uuid, 'moderator');
     if (typeof (result) == 'string') return res.status(403).send(result);
 
-    await tagList.update(req.body)
+    await tagList.update(req.body, {
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+    })
         .then((result) => {
-            res.send("tag updated successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("tag updated successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -72,7 +84,12 @@ app.delete("/:tagUUID", checkjwt, authorizedAsModerator, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("tag deleted successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("tag deleted successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -84,34 +101,21 @@ app.delete("/:tagUUID", checkjwt, authorizedAsModerator, async (req, res) => {
 */
 app.get("/:tagUUID", async (req, res) => {
     const tagUUID = req.params.tagUUID;
-    let error = false;
 
-    result = await tagList.findOne({
+    await tagList.findOne({
         where: {
             "uuid": {
                 [Op.eq]: tagUUID,
             },
         },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send(err);
-        });
-
-    if (error) return;
-
-    const tagId = result.id;
-
-    await tagList.findOne({
-        where: {
-            "id": {
-                [Op.eq]: tagId,
-            },
-        },
     })
         .then((result) => {
-            res.send(result);
+            if (result == null) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send(result);
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -141,6 +145,16 @@ app.get("/:tagUUID/followers", async (req, res) => {
         });
 
     if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
+    if (result == 0) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const tagId = result.id;
 
@@ -186,6 +200,11 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const profileId = result.id;
 
     result = await tagList.findOne({
@@ -201,6 +220,11 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
         });
 
     if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const tagId = result.id;
 
@@ -255,6 +279,11 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const profileId = result.id;
 
     result = await tagList.findOne({
@@ -270,6 +299,11 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
         });
 
     if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const tagId = result.id;
 
@@ -299,7 +333,12 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
         },
     })
         .then((result) => {
-            res.send("hashtag unfollowed successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("hashtag unfollowed successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -330,6 +369,11 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const hashtagId = result.id;
 
     result = await users.findOne({
@@ -346,6 +390,11 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
         });
 
     if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const userId = result.id;
 
@@ -385,6 +434,11 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const hashtagId = result.id;
 
     result = await users.findOne({
@@ -402,6 +456,11 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const userId = result.id;
 
     await hashtagModerators.destroy({
@@ -413,7 +472,12 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
         },
     })
         .then((result) => {
-            res.send("moderator added successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("moderator added successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);

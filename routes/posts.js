@@ -40,7 +40,12 @@ app.get("/:postUUID", async (req, res) => {
         },
     })
         .then((result) => {
-            res.send(result);
+            if (result == null) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send(result);
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -64,7 +69,12 @@ app.put("/:postUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("post updated successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("post updated successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -85,7 +95,12 @@ app.delete("/:postUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("post deleted successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("post deleted successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -115,6 +130,11 @@ app.get("/:postUUID/reactions", async (req, res) => {
         });
 
     if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const postId = result.id;
 
@@ -159,6 +179,11 @@ app.get("/:postUUID/comments", async (req, res) => {
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const postId = result.id;
 
     await comments.findAll({
@@ -202,6 +227,10 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const postId = result.id;
 
@@ -219,6 +248,11 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
         });
 
     if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const reactionId = result.id;
 
@@ -264,6 +298,11 @@ app.get("/:postUUID/tags", async (req, res) => {
 
     if (error) return false;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const postId = result.id;
 
     await tagPostRelation.findAll({
@@ -307,6 +346,11 @@ app.get("/:tagUUID/posts", async (req, res) => {
         });
 
     if (error) return false;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const tagId = result.id;
 
@@ -352,6 +396,11 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
 
     if (error) return false;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const postId = result.id;
 
     result = await tagList.findOne({
@@ -368,6 +417,11 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
 
     if (error) return false;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const tagId = result.id;
 
     // increase tag used count
@@ -383,7 +437,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (error) return;
 
     await tagPostRelation.destroy({
         where: {
@@ -396,7 +450,12 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
         },
     })
         .then((result) => {
-            res.send("tag removed successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("tag removed successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -427,6 +486,11 @@ app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedFor
 
     if (error) return false;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const postId = result.id;
 
     result = await tagList.findOne({
@@ -442,6 +506,11 @@ app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedFor
         });
 
     if (error) return false;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const tagId = result.id;
 
@@ -494,6 +563,11 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
 
     if (error) return false;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const postId = result.id;
 
     await bookmarkPostRelation.findAll({
@@ -531,6 +605,11 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
         });
 
     if (error) return false;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const postId = result.id;
 
@@ -572,6 +651,11 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
 
     if (error) return false;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const profileId = result.id;
 
     result = await posts.findOne({
@@ -588,6 +672,11 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
         });
 
     if (error) return false;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const postId = result.id;
 

@@ -1,6 +1,6 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { comments, reactionOnComments } = require('../models');
+const { comments, reactionOnComments, profiles } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, authorizedForProfileUUID, addProfileId } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
@@ -33,6 +33,11 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     req.body.profileId = result.id;
 
     await comments.create(req.body)
@@ -46,9 +51,8 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
 
 /* 
 * /:id - GET - get a comment
-* @check check jwt signature
 */
-app.get("/:commentUUID", checkjwt, async (req, res) => {
+app.get("/:commentUUID", async (req, res) => {
     const commentUUID = req.params.commentUUID;
     await comments.findOne({
         where: {
@@ -58,7 +62,12 @@ app.get("/:commentUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send(result);
+            if (result == null) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send(result);
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -82,7 +91,12 @@ app.put("/:commentUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("comment updated successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("comment updated successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -103,7 +117,12 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("comment deleted successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("comment deleted successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -135,6 +154,10 @@ app.get("/:commentUUID/reactions", async (req, res) => {
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const commentId = result.id;
 
@@ -148,6 +171,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
         offset: offset,
     })
         .then((result) => {
+            res.status(409).send("invalid resource");
             res.send(result);
         })
         .catch((err) => {
@@ -178,7 +202,12 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const commentId = result.id;
 

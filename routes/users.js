@@ -27,7 +27,12 @@ app.get('/:uuid', checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send(result);
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send(result);
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -69,7 +74,12 @@ app.put("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res)
         },
     })
         .then((result) => {
-            res.send("user promoted to moderator successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("user promoted to moderator successfully!!");
+            }
         })
         .catch((err) => {
             error = true;
@@ -96,7 +106,12 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
         },
     })
         .then((result) => {
-            res.send("user demoted from moderator successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("user demoted from moderator successfully!!");
+            }
         })
         .catch((err) => {
             error = true;
@@ -128,9 +143,14 @@ app.post('/login', async (req, res) => {
 
     if (error) return;
 
+    if (result == 0) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     checked = await bcrypt.compare(req.body.password, result.password);
     if (checked) {
-        let userObj = { auth: result.uuid, auth2gut: result.profiles.uuid, _sa: result.profiles.id };
+        let userObj = { auth: result.uuid, auth2: result.profiles.uuid, _sa: result.profiles.id };
         if (role !== 'user' && role !== undefined) {
             userObj['role'] = role;
         }
@@ -160,7 +180,12 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("user updated successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("user updated successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -197,6 +222,11 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
 
     if (error) return;
 
+    if (result == 0) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const uuid = result.uuid;
 
     checked = await bcrypt.compare(oldPassword, result.password);
@@ -215,6 +245,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
     addUUID(userdetails.uuid);
     removeUUID(uuid);
     jwttoken = jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' });
+    res.cookie("accessToken", jwttoken);
     res.send(jwttoken);
 });
 
@@ -251,8 +282,13 @@ app.delete('/:token', checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            removeUUID(uuid);
-            res.send("user deleted successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                removeUUID(uuid);
+                res.send("user deleted successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);

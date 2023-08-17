@@ -25,7 +25,7 @@ app.post("/", checkjwt, checkActiveUUID, async (req, res) => {
 });
 
 /* 
-* /:reactionUUID - GET - get a reaction by id
+* /:reactionUUID - GET - get a reaction by UUID
 */
 app.get("/:reactionUUID", async (req, res) => {
     const reactionUUID = req.params.reactionUUID;
@@ -38,7 +38,12 @@ app.get("/:reactionUUID", async (req, res) => {
         },
     })
         .then((result) => {
-            res.send(result);
+            if (result == null) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send(result);
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -60,7 +65,12 @@ app.delete("/:reactionUUID", checkjwt, checkActiveUUID, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("reaction removed successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("reaction removed successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);

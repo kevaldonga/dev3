@@ -22,7 +22,12 @@ app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
         },
     })
         .then((result) => {
-            res.send(result);
+            if (result == null) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send(result);
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -62,7 +67,12 @@ app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
         },
     })
         .then((result) => {
-            res.send("profile updated successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("profile updated successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -84,7 +94,12 @@ app.delete('/:profileUUID', checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("profile deleted successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("profile deleted successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -114,6 +129,11 @@ app.get("/:profileUUID/tags", async (req, res) => {
             res.status(403).send(err);
         });
     if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const profileId = result.id;
 
@@ -159,6 +179,11 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const tagId = result.id;
 
     result = await profiles.findOne({
@@ -176,6 +201,10 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const profileId = result.id;
 
@@ -230,6 +259,11 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const tagId = result.id;
 
     result = await profiles.findOne({
@@ -247,6 +281,10 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const profileId = result.id;
 

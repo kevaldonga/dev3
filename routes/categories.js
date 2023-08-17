@@ -29,6 +29,11 @@ app.get("/:postUUID", async (req, res) => {
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const postId = result.id;
 
     await categorOfPost.findAll({
@@ -39,7 +44,12 @@ app.get("/:postUUID", async (req, res) => {
         },
     })
         .then((result) => {
-            res.send(result);
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send(result);
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -61,7 +71,12 @@ app.delete("/:categoryUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("category removed");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("category removed");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);

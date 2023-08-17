@@ -30,6 +30,11 @@ app.get("/:profileUUID/followers", async (req, res) => {
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const profileId = result.id;
 
     await friendsRelation.findAll({
@@ -69,6 +74,11 @@ app.get("/:profileUUID/followings", async (req, res) => {
         });
 
     if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const profileId = result.id;
 
@@ -112,7 +122,12 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const profileId = result.id;
 
@@ -129,10 +144,14 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const beingFollowedProfileId = result.id;
-
 
     // increment following count in a profile
     await profiles.increment("followings", {
@@ -147,7 +166,12 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
+    if (error) return;
 
     // increment follower count in other profile
     await profiles.increment("followers", {
@@ -162,7 +186,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (error) return;
 
     // update friendsRelation table
     await friendsRelation.create({
@@ -199,7 +223,12 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const profileId = result.id;
 
@@ -216,7 +245,12 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
 
     const beingFollowedProfileId = result.id;
 
@@ -233,7 +267,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (error) return;
 
     // decrement follower count in other a profile
     await profiles.decrement("followers", {
@@ -248,12 +282,18 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
             res.status(403).send(err);
         });
 
-    if (err) return;
+    if (error) return;
 
     // update friendsRelation table
     result = await friendsRelation.destroy({
-        "followerProfileId": profileId,
-        "beingFollowedProfileId": beingFollowedProfileId,
+        where: {
+            "followerProfileId": {
+                [Op.eq]: profileId,
+            },
+            "beingFollowedProfileId": {
+                [Op.eq]: beingFollowedProfileId,
+            },
+        },
     })
         .then((result) => {
             res.send("unfollowed successfully!!");

@@ -34,6 +34,11 @@ app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const postId = result.id;
 
     await bookmarkPostsRelation.create({ "postId": postId, "profileId": profileId })
@@ -71,6 +76,11 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
     const profileId = result.id;
 
     result = await bookmarkPostsRelation.findAll({
@@ -105,7 +115,12 @@ app.delete("/:bookmarkUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("bookmark removed successfully !!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("bookmark removed successfully !!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
