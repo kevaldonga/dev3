@@ -484,4 +484,48 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
         });
 });
 
+/* 
+* /:tagUUID/moderators - GET - get all moderators of tag
+*/
+app.get("/:tagUUID/moderators", async (req, res) => {
+    const tagUUID = req.params.tagUUID;
+    let error = false;
+
+    result = await tagList.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: tagUUID,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = true;
+            res.status(409).send(err.message);
+        });
+
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
+    const tagId = result.id;
+
+    await hashtagModerators.findAll({
+        where: {
+            "tagId": {
+                [Op.eq]: tagId,
+            },
+        },
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err);
+        });
+});
+
 module.exports = app;
