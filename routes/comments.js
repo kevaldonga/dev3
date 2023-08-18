@@ -171,7 +171,6 @@ app.get("/:commentUUID/reactions", async (req, res) => {
         offset: offset,
     })
         .then((result) => {
-            res.status(409).send("invalid resource");
             res.send(result);
         })
         .catch((err) => {
@@ -211,7 +210,7 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
 
     const commentId = result.id;
 
-    await reactionOnComments.findAll({
+    await reactionOnComments.destroy({
         where: {
             "commentId": {
                 [Op.eq]: commentId,
@@ -222,7 +221,12 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
         },
     })
         .then((result) => {
-            res.send("reaction removed successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("reaction removed successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);

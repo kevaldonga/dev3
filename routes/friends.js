@@ -296,7 +296,12 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
         },
     })
         .then((result) => {
-            res.send("unfollowed successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("unfollowed successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);

@@ -18,10 +18,13 @@ module.exports = (sequelize, DataTypes) => {
         through: 'reactionOnPosts',
         foreignKey: 'postId',
       });
+
+      this.hasMany(models.reactionModerators);
     }
   }
   reactions.init({
     reaction: { type: DataTypes.CHAR(2), allowNull: false },
+    label: { type: DataTypes.STRING, allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4 },
   }, {
     sequelize,

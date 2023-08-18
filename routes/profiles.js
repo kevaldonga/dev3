@@ -314,7 +314,12 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
         },
     })
         .then((result) => {
-            res.send("tag removed successfully!!");
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("tag removed successfully!!");
+            }
         })
         .catch((err) => {
             res.status(403).send(err);
