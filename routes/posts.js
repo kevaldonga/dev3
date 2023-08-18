@@ -1,8 +1,8 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation, tagList } = require('../models');
+const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation, tagList, profiles, pinnedPosts } = require('../models');
 const { Op } = require('sequelize');
-const { checkjwt, addProfileId, authorizedForProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { checkjwt, addProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 * @check check jwt signature, get profileId from payload and add it req.nody
 */
 app.post("/", checkjwt, addProfileId, async (req, res) => {
-    value = nullCheck(req.body, { nonNullableFields: ['profileId', 'title', 'media'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
+    value = nullCheck(req.body, { nonNullableFields: ['profileId', 'title', 'media', 'readDuration'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
     if (typeof (value) == 'string') return res.status(409).send(value);
     await posts.create(req.body)
         .then((result) => {
@@ -146,6 +146,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
         },
         limit: limit,
         offset: offset,
+        include: "reactions",
     })
         .then((result) => {
             res.send(result);
@@ -589,6 +590,8 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
 */
 app.get("/:postUUID/bookmarks", async (req, res) => {
     const postUUID = req.params.postUUID;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await posts.findOne({
@@ -618,6 +621,8 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
             "postId": postId,
         },
         include: "profiles",
+        offset: offset,
+        limit: limit,
     })
         .then((result) => {
             res.send(result);
@@ -695,6 +700,196 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
         })
         .catch((err) => {
             res.status(403).send(err);
+        });
+});
+
+/* 
+* /:postUUID/pinned/:profileUUID - POST - pin the post of user profile
+* @check check jwt signature, match profileuuid from payload
+*/
+app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const postUUID = req.params.postUUID;
+    const profileUUID = req.params.profileUUID;
+    let error = false;
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = false;
+            res.status(409).send(err);
+        });
+
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
+    const postId = result.id;
+
+    result = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = false;
+            res.status(409).send(err);
+        });
+
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
+    const profileId = result.id;
+
+    await pinnedPosts.create({
+        "profileId": profileId,
+        "postId": postId,
+    })
+        .then((result) => {
+            res.send("post pinned successfully!!");
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
+});
+
+/* 
+* /:postUUID/pinned/:profileUUID - DELETE - unpin the post of user profile
+* @check check jwt signature, match profileuuid from payload
+*/
+app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    const postUUID = req.params.postUUID;
+    const profileUUID = req.params.profileUUID;
+    let error = false;
+
+    result = await posts.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: postUUID,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = false;
+            res.status(409).send(err);
+        });
+
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
+    const postId = result.id;
+
+    result = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = false;
+            res.status(409).send(err);
+        });
+
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
+    const profileId = result.id;
+
+    await pinnedPosts.destroy({
+        where: {
+            "profileId": {
+                [Op.eq]: profileId,
+            },
+            "postId": {
+                [Op.eq]: postId,
+            },
+        }
+    })
+        .then((result) => {
+            if (result == 0) {
+                res.status(409).send("invalid resource");
+            }
+            else {
+                res.send("post unpinned successfully!!");
+            }
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
+        });
+});
+
+/* 
+* /:profileUUID/pinned/all - GET - get all pinned post of user profile
+*/
+app.get("/:profileUUID/pinned/all", async (req, res) => {
+    const profileUUID = req.params.profileUUID;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
+    let error = false;
+
+    result = await profiles.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: profileUUID,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = true;
+            res.status(409).send(err.message);
+        });
+
+    if (error) return;
+
+    if (result == null) {
+        res.status(409).send("invalid resource");
+        return;
+    }
+
+    const profileId = result.id;
+
+    await pinnedPosts.findAll({
+        where: {
+            "profileId": {
+                [Op.eq]: profileId,
+            },
+        },
+        include: 'posts',
+        limit: limit,
+        offset: offset,
+    })
+        .then((result) => {
+            res.send(result);
+        })
+        .catch((err) => {
+            res.status(403).send(err.message);
         });
 });
 

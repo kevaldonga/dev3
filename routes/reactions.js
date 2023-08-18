@@ -86,9 +86,9 @@ app.delete("/:reactionUUID", checkjwt, checkActiveUUID, authorizedAsModerator, a
 
 /* 
 * /:reactionUUID/moderator/:uuid - POST - add moderator in reactions
-* @check check jwt signature, match payload uuid with user uuid, authroize user as moderator, check active uuid i txt file
+* @check check jwt signature, match payload uuid with user uuid, authroize user as moderator
 */
-app.post("/:reactionUUID/moderator/:uuid", async (req, res) => {
+app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, async (req, res) => {
     const reactionUUID = req.params.reactionUUID;
     const uuid = req.params.uuid;
 
@@ -232,6 +232,8 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
 */
 app.get("/:reactionUUID/moderators", async (req, res) => {
     const reactionUUID = req.params.reactionUUID;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await reactions.findOne({
@@ -262,6 +264,9 @@ app.get("/:reactionUUID/moderators", async (req, res) => {
                 [Op.eq]: reactionId,
             },
         },
+        include: "users",
+        limit: limit,
+        offset: offset,
     })
         .then((result) => {
             res.send(result);

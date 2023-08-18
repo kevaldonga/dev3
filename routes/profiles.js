@@ -82,9 +82,9 @@ app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
 
 /*
 * /:profileUUID - DELETE - delete a user profile by given uuid
-* @check check jwt signature
+* @check check jwt signature, match profileUUID with payload
 */
-app.delete('/:profileUUID', checkjwt, async (req, res) => {
+app.delete('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     await profiles.destroy({
         where: {

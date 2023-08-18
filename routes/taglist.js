@@ -164,9 +164,9 @@ app.get("/:tagUUID/followers", async (req, res) => {
                 [Op.eq]: tagId,
             },
         },
+        include: "profiles",
         limit: limit,
         offset: offset,
-        include: "profiles"
     })
         .then((result) => {
             res.send(result);
@@ -489,6 +489,8 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
 */
 app.get("/:tagUUID/moderators", async (req, res) => {
     const tagUUID = req.params.tagUUID;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
     let error = false;
 
     result = await tagList.findOne({
@@ -519,6 +521,9 @@ app.get("/:tagUUID/moderators", async (req, res) => {
                 [Op.eq]: tagId,
             },
         },
+        include: "users",
+        limit: limit,
+        offset: offset,
     })
         .then((result) => {
             res.send(result);

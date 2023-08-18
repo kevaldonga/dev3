@@ -24,6 +24,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'hashtagId'
       });
       this.hasMany(models.posts);
+      this.belongsToMany(models.posts, {
+        through: "pinnedPosts",
+        foreignKey: "postId",
+      });
     }
   }
   profiles.init({

@@ -23,6 +23,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'reactionId',
       });
       this.hasMany(models.comments);
+      this.belongsToMany(models.profiles, {
+        through: "pinnedPosts",
+        foreignKey: "profileId",
+      });
     }
   }
   posts.init({
@@ -30,6 +34,7 @@ module.exports = (sequelize, DataTypes) => {
     profileId: { type: DataTypes.INTEGER, allowNull: false },
     title: { type: DataTypes.STRING, allowNull: false, validate: { len: [5, 100] } },
     description: { type: DataTypes.STRING, allowNull: true, validate: { len: [10, 255] } },
+    readDuration: { type: DataTypes.DATE, allowNull: false },
     reactionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4 },
   }, {

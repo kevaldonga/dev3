@@ -245,7 +245,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
     addUUID(userdetails.uuid);
     removeUUID(uuid);
     jwttoken = jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' });
-    res.cookie("accessToken", jwttoken);
+    res.cookie("accessToken", jwttoken, { secure: true, httpOnly: true });
     res.send(jwttoken);
 });
 
