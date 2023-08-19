@@ -10,8 +10,8 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.belongsTo(models.profiles, { foreignKey: "followerProfileId", as: "followings" });
-      this.belongsTo(models.profiles, { foreignKey: "beingFollowedProfileId", as: "followers" });
+      this.belongsTo(models.profiles, { foreignKey: "followerProfileId", as: "followers" });
+      this.belongsTo(models.profiles, { foreignKey: "beingFollowedProfileId", as: "followings" });
     }
   }
   friendsRelation.init({

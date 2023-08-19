@@ -5,6 +5,7 @@ const { Op } = require('sequelize');
 const { checkjwt, checkActiveUUID, authorizedForProfileUUID, authorized } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { authorizedAsModerator } = require('./../middleware/rolecheck');
+const getObj = require('./functions/include');
 
 app.use(bodyParser.json());
 
@@ -58,7 +59,7 @@ app.put("/:tagUUID/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiv
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("tag updated successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -88,7 +89,7 @@ app.delete("/:tagUUID", checkjwt, authorizedAsModerator, async (req, res) => {
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("tag deleted successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -147,8 +148,7 @@ app.get("/:tagUUID/followers", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     if (result == 0) {
@@ -169,7 +169,7 @@ app.get("/:tagUUID/followers", async (req, res) => {
         offset: offset,
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "profiles"));
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -201,8 +201,7 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -222,8 +221,7 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const tagId = result.id;
@@ -248,7 +246,7 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
         "hashtagId": tagId,
     })
         .then((result) => {
-            res.send("hashtag followed successfully!!");
+            res.send("SUCCESS");
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -280,8 +278,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -301,8 +298,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const tagId = result.id;
@@ -337,7 +333,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("hashtag unfollowed successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -370,8 +366,7 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const hashtagId = result.id;
@@ -392,8 +387,7 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const userId = result.id;
@@ -403,7 +397,7 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
         "userId": userId,
     })
         .then((result) => {
-            res.send("moderator added successfully!!");
+            res.send("SUCCESS");
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -435,8 +429,7 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const hashtagId = result.id;
@@ -457,8 +450,7 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const userId = result.id;
@@ -476,7 +468,7 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("moderator added successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -503,14 +495,13 @@ app.get("/:tagUUID/moderators", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err.message);
+            res.status(409).send(err);
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const tagId = result.id;
@@ -521,12 +512,12 @@ app.get("/:tagUUID/moderators", async (req, res) => {
                 [Op.eq]: tagId,
             },
         },
-        include: "users",
+        include: "profiles",
         limit: limit,
         offset: offset,
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "profiles"));
         })
         .catch((err) => {
             res.status(403).send(err);

@@ -4,6 +4,7 @@ const { posts, reactionOnPosts, tagPostRelation, comments, bookmarkPostRelation,
 const { Op } = require('sequelize');
 const { checkjwt, addProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
+const getObj = require('./functions/include');
 
 app.use(bodyParser.json());
 /*
@@ -13,7 +14,7 @@ app.use(bodyParser.json());
 
 /* 
 * / - POST - create post
-* @check check jwt signature, get profileId from payload and add it req.nody
+* @check check jwt signature, get profileId from payload and add it req.body
 */
 app.post("/", checkjwt, addProfileId, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['profileId', 'title', 'media', 'readDuration'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
@@ -73,7 +74,7 @@ app.put("/:postUUID", checkjwt, async (req, res) => {
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("post updated successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -99,7 +100,7 @@ app.delete("/:postUUID", checkjwt, async (req, res) => {
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("post deleted successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -132,8 +133,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -181,8 +181,7 @@ app.get("/:postUUID/comments", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -229,8 +228,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -251,8 +249,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const reactionId = result.id;
@@ -268,7 +265,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
         }
     })
         .then((result) => {
-            res.send("reaction removed successfully!!");
+            res.send("SUCCESS");
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -300,8 +297,7 @@ app.get("/:postUUID/tags", async (req, res) => {
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -317,7 +313,7 @@ app.get("/:postUUID/tags", async (req, res) => {
         include: "tags",
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "tags"));
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -349,8 +345,7 @@ app.get("/:tagUUID/posts", async (req, res) => {
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const tagId = result.id;
@@ -366,7 +361,7 @@ app.get("/:tagUUID/posts", async (req, res) => {
         include: "posts",
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "posts"));
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -398,8 +393,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -419,8 +413,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const tagId = result.id;
@@ -455,7 +448,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("tag removed successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -488,8 +481,7 @@ app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedFor
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -509,8 +501,7 @@ app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedFor
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const tagId = result.id;
@@ -535,7 +526,7 @@ app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedFor
         "postId": postId,
     })
         .then((result) => {
-            res.send("tag added successfully!!");
+            res.send("SUCCESS");
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -565,8 +556,7 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -610,8 +600,7 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -625,7 +614,7 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
         limit: limit,
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "profiles"));
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -657,8 +646,7 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -679,8 +667,7 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
     if (error) return false;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -728,8 +715,7 @@ app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, a
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -750,8 +736,7 @@ app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, a
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -761,10 +746,10 @@ app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, a
         "postId": postId,
     })
         .then((result) => {
-            res.send("post pinned successfully!!");
+            res.send("SUCCESS");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -793,8 +778,7 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -815,8 +799,7 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -836,11 +819,11 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("post unpinned successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -863,14 +846,13 @@ app.get("/:profileUUID/pinned/all", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err.message);
+            res.status(409).send(err);
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -881,15 +863,15 @@ app.get("/:profileUUID/pinned/all", async (req, res) => {
                 [Op.eq]: profileId,
             },
         },
-        include: 'posts',
+        include: "pinnedposts",
         limit: limit,
         offset: offset,
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "pinnedposts"));
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 

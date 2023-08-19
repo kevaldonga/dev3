@@ -5,6 +5,7 @@ const { Op } = require('sequelize');
 const { checkjwt, checkActiveUUID } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { authorizedAsModerator } = require('../middleware/rolecheck');
+const getObj = require('./functions/include');
 
 app.use(bodyParser.json())
 
@@ -76,7 +77,7 @@ app.delete("/:reactionUUID", checkjwt, checkActiveUUID, authorizedAsModerator, a
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("reaction removed successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -104,14 +105,13 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err.message);
+            res.status(409).send(err);
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const userId = result.id;
@@ -126,14 +126,13 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err.message);
+            res.status(409).send(err);
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const reactionId = result.id;
@@ -143,10 +142,10 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
         "userId": userId,
     })
         .then((result) => {
-            res.send("moderator added successfully!!");
+            res.send("SUCCESS");
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -170,14 +169,13 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err.message);
+            res.status(409).send(err);
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const userId = result.id;
@@ -192,14 +190,13 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err.message);
+            res.status(409).send(err);
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const reactionId = result.id;
@@ -219,11 +216,11 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("moderator removed successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
-            res.status(403).send(err.message);
+            res.status(403).send(err);
         });
 });
 
@@ -246,14 +243,13 @@ app.get("/:reactionUUID/moderators", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err.message);
+            res.status(409).send(err);
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const reactionId = result.id;
@@ -269,7 +265,7 @@ app.get("/:reactionUUID/moderators", async (req, res) => {
         offset: offset,
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "users"));
         })
         .catch((err) => {
             res.status(403).send(err);

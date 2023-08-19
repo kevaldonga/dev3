@@ -1,6 +1,6 @@
 const app = require('express').Router();
 const bodyParser = require('body-parser');
-const { users } = require('../models');
+const { users, reactionModerators, hashtagModerators } = require('../models');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -9,6 +9,7 @@ const { validatePassword } = require('./validations/user');
 const { addUUID, removeUUID } = require('../middleware/uuidfileop');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { roleCheck } = require('../middleware/rolecheck');
+const jwtcheck = require('../middleware/jwtcheck');
 const JWTPRIVATEKEY = 'FASTSPEED';
 
 app.use(bodyParser.json());
@@ -78,7 +79,7 @@ app.put("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res)
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("user promoted to moderator successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -110,7 +111,7 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("user demoted from moderator successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -134,7 +135,7 @@ app.post('/login', async (req, res) => {
                 [Op.eq]: req.body.username,
             },
         },
-        include: 'profiles',
+        include: "profiles",
     })
         .catch((err) => {
             error = true;
@@ -184,7 +185,7 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("user updated successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -287,8 +288,106 @@ app.delete('/:token', checkjwt, async (req, res) => {
             }
             else {
                 removeUUID(uuid);
-                res.send("user deleted successfully!!");
+                res.send("SUCCESS");
             }
+        })
+        .catch((err) => {
+            res.status(403).send(err);
+        });
+});
+
+/* 
+* /:uuid//moderator/hashtags - GET - get all hashtags which user has been moderating
+* @check check jwt signature, match uuid from payload, check uuid from txt file
+*/
+app.get("/:uuid/moderator/hashtags", jwtcheck, authorized, checkActiveUUID, async (req, res) => {
+    const uuid = req.params.uuid;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
+    let error = false;
+
+    result = await users.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: uuid,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = true;
+            res.status(409).send(err);
+        });
+
+    if (error) return;
+
+    if (result == null) {
+        return res.status(409).send("invalid resource");
+    }
+
+    const userId = result.id;
+
+    await hashtagModerators.findAll({
+        where: {
+            "userId": {
+                [Op.eq]: userId,
+            },
+        },
+        include: "hashtags",
+        limit: limit,
+        offset: offset,
+    })
+        .then((result) => {
+            res.send(get(result, "hashtags"));
+        })
+        .catch((err) => {
+            res.status(403).send(err);
+        });
+});
+
+/* 
+* /:uuid//moderator/hashtags - GET - get all reactions which user has been moderating
+* @check check jwt signature, match uuid from payload, check uuid from txt file
+*/
+app.get("/:uuid/moderator/reactions", jwtcheck, authorized, checkActiveUUID, async (req, res) => {
+    const uuid = req.params.uuid;
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
+    let error = false;
+
+    result = await users.findOne({
+        where: {
+            "uuid": {
+                [Op.eq]: uuid,
+            },
+        },
+        attributes: ['id'],
+    })
+        .catch((err) => {
+            error = true;
+            res.status(409).send(err);
+        });
+
+    if (error) return;
+
+    if (result == null) {
+        return res.status(409).send("invalid resource");
+    }
+
+    const userId = result.id;
+
+    await reactionModerators.findAll({
+        where: {
+            "userId": {
+                [Op.eq]: userId,
+            },
+        },
+        include: "reactions",
+        limit: limit,
+        offset: offset,
+    })
+        .then((result) => {
+            res.send(get(result, "reactions"));
         })
         .catch((err) => {
             res.status(403).send(err);

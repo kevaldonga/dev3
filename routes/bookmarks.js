@@ -4,12 +4,13 @@ const { bookmarkPostsRelation, profiles } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, addProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 const { nullCheck } = require('./validations/nullcheck');
+const getObj = require('./functions/include');
 
 app.use(bodyParser.json());
 
 /*
 * /:postUUID - POST - add a post to bookmark
-* @check check jwt signature, get profileId from payload and add it req.nody
+* @check check jwt signature, get profileId from payload and add it req.body
 */
 app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['profileId'] });
@@ -35,15 +36,14 @@ app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
 
     await bookmarkPostsRelation.create({ "postId": postId, "profileId": profileId })
         .then((result) => {
-            res.send("added post to bookmark!!");
+            res.send("SUCCESS");
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -66,7 +66,6 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
                 [Op.eq]: profileUUID,
             },
         },
-        include: "tags",
         attributes: ['id'],
     })
         .catch((err) => {
@@ -77,8 +76,7 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -94,7 +92,7 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
         include: "posts",
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "posts"));
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -119,7 +117,7 @@ app.delete("/:bookmarkUUID", checkjwt, async (req, res) => {
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("bookmark removed successfully !!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {

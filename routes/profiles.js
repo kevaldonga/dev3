@@ -4,6 +4,7 @@ const { profiles, tagUserRelation } = require('../models');
 const { Op } = require('sequelize');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const getObj = require('./functions/include');
 
 app.use(bodyParser.json());
 
@@ -71,7 +72,7 @@ app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("profile updated successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -98,7 +99,7 @@ app.delete('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res)
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("profile deleted successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -131,8 +132,7 @@ app.get("/:profileUUID/tags", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -148,7 +148,7 @@ app.get("/:profileUUID/tags", async (req, res) => {
         include: "tags",
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "tags"));
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -180,8 +180,7 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const tagId = result.id;
@@ -202,8 +201,7 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -228,7 +226,7 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
         "tagId": tagId,
     })
         .then((result) => {
-            res.send("tag added successfully!!");
+            res.send("SUCCESS");
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -260,8 +258,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const tagId = result.id;
@@ -282,8 +279,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const profileId = result.id;
@@ -318,7 +314,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("tag removed successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {

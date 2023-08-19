@@ -34,8 +34,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     req.body.profileId = result.id;
@@ -95,7 +94,7 @@ app.put("/:commentUUID", checkjwt, async (req, res) => {
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("comment updated successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -121,7 +120,7 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("comment deleted successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -155,8 +154,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const commentId = result.id;
@@ -204,8 +202,7 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const commentId = result.id;
@@ -225,7 +222,7 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("reaction removed successfully!!");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {

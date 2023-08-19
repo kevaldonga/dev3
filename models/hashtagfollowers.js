@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.profiles);
-      this.belongsTo(models.tagList);
+      this.belongsTo(models.tagList, { foreignKey: "hashtagId", as: "hashtags" });
     }
   }
   hashtagFollowers.init({

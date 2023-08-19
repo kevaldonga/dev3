@@ -11,11 +11,13 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.users);
-      this.belongsTo(models.tagList);
+      this.belongsTo(models.profiles);
+      this.belongsTo(models.tagList, { foreignKey: "hashtagId", as: "hashtags" });
     }
   }
   hashtagModerators.init({
     userId: { type: DataTypes.INTEGER, allowNull: false },
+    profileId: { type: DataTypes.INTEGER, allowNull: false },
     hashtagId: { type: DataTypes.INTEGER, allowNull: false },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4 },
   }, {

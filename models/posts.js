@@ -23,10 +23,6 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'reactionId',
       });
       this.hasMany(models.comments);
-      this.belongsToMany(models.profiles, {
-        through: "pinnedPosts",
-        foreignKey: "profileId",
-      });
     }
   }
   posts.init({

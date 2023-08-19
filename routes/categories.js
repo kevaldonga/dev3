@@ -4,6 +4,7 @@ const { categorOfPost, posts } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require("./validations/nullcheck");
+const getObj = require('./functions/include');
 
 app.use(bodyParser.json());
 
@@ -30,8 +31,7 @@ app.get("/:postUUID", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
-        return;
+        return res.status(409).send("invalid resource");
     }
 
     const postId = result.id;
@@ -75,7 +75,7 @@ app.delete("/:categoryUUID", checkjwt, async (req, res) => {
                 res.status(409).send("invalid resource");
             }
             else {
-                res.send("category removed");
+                res.send("SUCCESS");
             }
         })
         .catch((err) => {
@@ -93,7 +93,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
 
     await categorOfPost.create(req.body)
         .then((result) => {
-            res.send("category created successfully !!");
+            res.send("SUCCESS");
         })
         .catch((err) => {
             res.status(403).send(err);
@@ -119,7 +119,7 @@ app.get("/:categoryUUID/all", async (req, res) => {
         include: "posts",
     })
         .then((result) => {
-            res.send(result);
+            res.send(getObj(result, "posts"));
         })
         .catch((err) => {
             res.status(403).send(err);
