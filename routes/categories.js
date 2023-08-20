@@ -89,7 +89,7 @@ app.delete("/:categoryUUID", checkjwt, async (req, res) => {
 */
 app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['type', 'postId'], mustBeNullFields: [...defaultNullFields] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     await categorOfPost.create(req.body)
         .then((result) => {

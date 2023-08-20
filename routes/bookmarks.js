@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 */
 app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['profileId'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
     let error = false;
 
     const profileId = req.body.profileId;

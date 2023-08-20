@@ -15,7 +15,7 @@ app.use(bodyParser.json())
 */
 app.post("/", checkjwt, checkActiveUUID, authorizedAsModerator, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['reaction', 'label'], mustBeNullFields: [...defaultNullFields] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     const result = roleCheck(uuid, 'moderator');
     if (typeof (result) == 'string') return res.status(403).send(result);

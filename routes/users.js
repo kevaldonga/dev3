@@ -45,7 +45,7 @@ app.get('/:uuid', checkjwt, async (req, res) => {
 */
 app.post('/', async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token', 'role'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     await users.create(req.body)
         .then((result) => {
@@ -125,7 +125,7 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
 */
 app.post('/login', async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['username', 'password'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
     let error = false;
     const role = req.body.role;
 
@@ -170,7 +170,7 @@ app.post('/login', async (req, res) => {
 */
 app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['username', 'token'], mustBeNullFields: [...defaultNullFields, 'password', 'role'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     const token = req.body.token;
     await users.update(req.body, {
@@ -200,7 +200,7 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
 */
 app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['newPassword', 'oldPassword', 'token'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
     let error = false;
 
     const oldPassword = req.body.oldPassword;

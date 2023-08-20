@@ -18,7 +18,7 @@ app.post("/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, a
         nonNullableFields: ['tag', 'image', 'color', 'description'],
         mustBeNullFields: [...defaultNullFields, 'count', 'followerCount']
     });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     const result = roleCheck(uuid, 'moderator');
     if (typeof (result) == 'string') return res.status(403).send(result);
@@ -42,7 +42,7 @@ app.put("/:tagUUID/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiv
         nonNullableFields: ['image', 'color', 'description'],
         mustBeNullFields: [...defaultNullFields, 'count', 'followerCount', 'tag']
     });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     const result = roleCheck(uuid, 'moderator');
     if (typeof (result) == 'string') return res.status(403).send(result);

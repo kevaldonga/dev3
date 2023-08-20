@@ -40,7 +40,7 @@ app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
 */
 app.post('/:uuid', async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['userId', 'name'], mustBeNullFields: [...defaultNullFields, 'followers', 'followings'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     await profiles.create(req.body)
         .then((result) => {
@@ -57,7 +57,7 @@ app.post('/:uuid', async (req, res) => {
 */
 app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
     value = nullCheck(req.body, { mustBeNullFields: [...defaultNullFields, 'followers', 'followings', 'userId'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     const profileUUID = req.params.profileUUID;
     await profiles.update(req.body, {

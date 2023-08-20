@@ -18,7 +18,7 @@ app.use(bodyParser.json());
 */
 app.post("/", checkjwt, addProfileId, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['profileId', 'title', 'media', 'readDuration'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
     await posts.create(req.body)
         .then((result) => {
             res.send(result);
@@ -59,7 +59,7 @@ app.get("/:postUUID", async (req, res) => {
 */
 app.put("/:postUUID", checkjwt, async (req, res) => {
     value = nullCheck(req.body, { mustBeNullFields: [...defaultNullFields, 'profileId', 'reactionCount'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     const postUUID = req.params.postUUID;
     await posts.update(req.body, {

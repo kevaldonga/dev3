@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 */
 app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['comment', 'postId'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
     let error = false;
 
     const profileUUID = req.params.profileUUID;
@@ -79,7 +79,7 @@ app.get("/:commentUUID", async (req, res) => {
 */
 app.put("/:commentUUID", checkjwt, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['comment'], mustBeNullFields: [...defaultNullFields, 'postId', 'profileId', 'reactionCount'] });
-    if (typeof (value) == 'string') return res.status(409).send(value);
+    if (typeof (value) == 'string') return res.status(400).send(value);
 
     const commentUUID = req.params.commentUUID;
     await comments.update(req.body, {
