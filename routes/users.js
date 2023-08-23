@@ -9,7 +9,6 @@ const { validatePassword } = require('./validations/user');
 const { addUUID, removeUUID } = require('../middleware/uuidfileop');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { roleCheck } = require('../middleware/rolecheck');
-const jwtcheck = require('../middleware/jwtcheck');
 const JWTPRIVATEKEY = 'FASTSPEED';
 
 app.use(bodyParser.json());
@@ -144,7 +143,7 @@ app.post('/login', async (req, res) => {
 
     if (error) return;
 
-    if (result == 0) {
+    if (result == null) {
         res.status(409).send("invalid resource");
         return;
     }
@@ -157,7 +156,7 @@ app.post('/login', async (req, res) => {
         }
         let jt = jwt.sign(userObj, JWTPRIVATEKEY, { 'expiresIn': '30D' });
         addUUID(result.uuid);
-        res.cookie('accessToken', jt, { path: '/', httpOnly: true, secure: true });
+        res.cookie('jwt', jt, { path: '/', httpOnly: true, secure: true });
         res.send(jt);
     } else {
         res.status(403).send('Invalid');
@@ -223,7 +222,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
 
     if (error) return;
 
-    if (result == 0) {
+    if (result == null) {
         res.status(409).send("invalid resource");
         return;
     }
@@ -300,7 +299,7 @@ app.delete('/:token', checkjwt, async (req, res) => {
 * /:uuid//moderator/hashtags - GET - get all hashtags which user has been moderating
 * @check check jwt signature, match uuid from payload, check uuid from txt file
 */
-app.get("/:uuid/moderator/hashtags", jwtcheck, authorized, checkActiveUUID, async (req, res) => {
+app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, async (req, res) => {
     const uuid = req.params.uuid;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
@@ -349,7 +348,7 @@ app.get("/:uuid/moderator/hashtags", jwtcheck, authorized, checkActiveUUID, asyn
 * /:uuid//moderator/hashtags - GET - get all reactions which user has been moderating
 * @check check jwt signature, match uuid from payload, check uuid from txt file
 */
-app.get("/:uuid/moderator/reactions", jwtcheck, authorized, checkActiveUUID, async (req, res) => {
+app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, async (req, res) => {
     const uuid = req.params.uuid;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);

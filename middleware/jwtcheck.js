@@ -1,12 +1,29 @@
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const readline = require('readline');
+const { fetchHTTPCookies } = require('./fetchhttpcookies');
 
 const JWTPRIVATEKEY = 'FASTSPEED';
 
 const checkjwt = (req, res, next) => {
+    let jwtToken;
+    if (req.headers.authorization === undefined) {
+        const cookieStr = req.headers.cookie;
+
+        const cookies = fetchHTTPCookies(cookieStr);
+
+        jwtToken = cookies.jwt;
+    }
+    else {
+        jwtToken = req.headers.authorization.split(' ')[1];
+    }
+
+    if (jwtToken === undefined) {
+        res.status(403).send('Access denied');
+        return;
+    }
     try {
-        let user = jwt.verify(req.headers.authorization.split(' ')[1], JWTPRIVATEKEY);
+        let user = jwt.verify(jwtToken, JWTPRIVATEKEY);
         req.userinfo = user;
         next();
     } catch {
