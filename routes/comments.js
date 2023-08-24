@@ -34,7 +34,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     req.body.profileId = result.id;
@@ -62,7 +62,7 @@ app.get("/:commentUUID", async (req, res) => {
     })
         .then((result) => {
             if (result == null) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send(result);
@@ -91,7 +91,7 @@ app.put("/:commentUUID", checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -117,7 +117,7 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -154,7 +154,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const commentId = result.id;
@@ -202,7 +202,7 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const commentId = result.id;
@@ -219,7 +219,7 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");

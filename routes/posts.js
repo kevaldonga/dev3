@@ -42,7 +42,7 @@ app.get("/:postUUID", async (req, res) => {
     })
         .then((result) => {
             if (result == null) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send(result);
@@ -71,7 +71,7 @@ app.put("/:postUUID", checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -97,7 +97,7 @@ app.delete("/:postUUID", checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -133,7 +133,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -181,7 +181,7 @@ app.get("/:postUUID/comments", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -228,7 +228,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -249,7 +249,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const reactionId = result.id;
@@ -297,7 +297,7 @@ app.get("/:postUUID/tags", async (req, res) => {
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -345,7 +345,7 @@ app.get("/:tagUUID/posts", async (req, res) => {
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const tagId = result.id;
@@ -393,7 +393,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -413,7 +413,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const tagId = result.id;
@@ -445,7 +445,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -481,7 +481,7 @@ app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedFor
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -501,7 +501,7 @@ app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedFor
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const tagId = result.id;
@@ -556,7 +556,7 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -600,7 +600,7 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -646,7 +646,7 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -667,7 +667,7 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
     if (error) return false;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -715,7 +715,7 @@ app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, a
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -736,7 +736,7 @@ app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, a
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -778,7 +778,7 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -799,7 +799,7 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -816,7 +816,7 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -852,7 +852,7 @@ app.get("/:profileUUID/pinned/all", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;

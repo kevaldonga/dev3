@@ -28,7 +28,7 @@ app.get('/:uuid', checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send(result);
@@ -75,7 +75,7 @@ app.put("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res)
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -107,7 +107,7 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -144,7 +144,7 @@ app.post('/login', async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
+        res.status(409).send("Invalid resource");
         return;
     }
 
@@ -181,7 +181,7 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -223,7 +223,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("invalid resource");
+        res.status(409).send("Invalid resource");
         return;
     }
 
@@ -232,7 +232,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
     checked = await bcrypt.compare(oldPassword, result.password);
 
     if (!checked || !validatePassword(oldPassword)) {
-        res.status(403).send("invalid password!!");
+        res.status(403).send("Invalid password!!");
         return;
     }
 
@@ -272,6 +272,11 @@ app.delete('/:token', checkjwt, async (req, res) => {
 
     if (error) return;
 
+    if (result == null) {
+        res.status(409).send("Invalid resource");
+        return;
+    }
+
     const uuid = result.uuid;
 
     await users.destroy({
@@ -283,7 +288,7 @@ app.delete('/:token', checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 removeUUID(uuid);
@@ -321,7 +326,7 @@ app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, asyn
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const userId = result.id;
@@ -370,7 +375,7 @@ app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, asy
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const userId = result.id;

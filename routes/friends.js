@@ -32,7 +32,7 @@ app.get("/:profileUUID/followers", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -76,7 +76,7 @@ app.get("/:profileUUID/followings", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -124,7 +124,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -145,7 +145,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const beingFollowedProfileId = result.id;
@@ -164,7 +164,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
         });
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     if (error) return;
@@ -222,7 +222,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -243,7 +243,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const beingFollowedProfileId = result.id;
@@ -291,7 +291,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");

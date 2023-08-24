@@ -44,7 +44,7 @@ app.get("/:reactionUUID", async (req, res) => {
     })
         .then((result) => {
             if (result == null) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send(result);
@@ -74,7 +74,7 @@ app.delete("/:reactionUUID", checkjwt, checkActiveUUID, authorizedAsModerator, a
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -111,7 +111,7 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const userId = result.id;
@@ -132,7 +132,7 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const reactionId = result.id;
@@ -175,7 +175,7 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const userId = result.id;
@@ -196,7 +196,7 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const reactionId = result.id;
@@ -213,7 +213,7 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -249,7 +249,7 @@ app.get("/:reactionUUID/moderators", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const reactionId = result.id;

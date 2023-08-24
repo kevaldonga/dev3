@@ -31,7 +31,7 @@ app.get("/:postUUID", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const postId = result.id;
@@ -45,7 +45,7 @@ app.get("/:postUUID", async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send(result);
@@ -72,7 +72,7 @@ app.delete("/:categoryUUID", checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");

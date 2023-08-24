@@ -24,7 +24,7 @@ app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
     })
         .then((result) => {
             if (result == null) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send(result);
@@ -69,7 +69,7 @@ app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -96,7 +96,7 @@ app.delete('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res)
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
@@ -132,7 +132,7 @@ app.get("/:profileUUID/tags", async (req, res) => {
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -180,7 +180,7 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const tagId = result.id;
@@ -201,7 +201,7 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -258,7 +258,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const tagId = result.id;
@@ -279,7 +279,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("invalid resource");
+        return res.status(409).send("Invalid resource");
     }
 
     const profileId = result.id;
@@ -311,7 +311,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("invalid resource");
+                res.status(409).send("Invalid resource");
             }
             else {
                 res.send("SUCCESS");
