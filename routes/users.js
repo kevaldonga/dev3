@@ -9,6 +9,8 @@ const { validatePassword } = require('./validations/user');
 const { addUUID, removeUUID } = require('../middleware/uuidfileop');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { roleCheck } = require('../middleware/rolecheck');
+const { v4: uuidv4, v1: uuidv1 } = require('uuid');
+
 const JWTPRIVATEKEY = process.env.JWT;
 
 app.use(bodyParser.json());
@@ -36,6 +38,87 @@ app.get('/:uuid', checkjwt, async (req, res) => {
         })
         .catch((err) => {
             res.status(403).send(err);
+        });
+});
+
+/* 
+* /verify  - PUT - get verify email address link
+*/
+app.put("/verify", async (req, res) => {
+    value = nullCheck(req.body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token', 'role'] });
+    if (typeof (value) == 'string') return res.status(400).send(value);
+    let error = false;
+
+    result = await users.findOne({
+        where: {
+            "username": {
+                [Op.eq]: req.body.username,
+            },
+        },
+    })
+        .catch((err) => {
+            error = true;
+        });
+
+    if (result == null || error) {
+        return res.status(409).send("incorrect email or password");
+    }
+
+    const password = result.password;
+
+    const check = bcrypt.compareSync(req.body.password, password);
+
+    if (check) {
+        res.send(`http://localhost:5000/users/verify/${result.token}`);
+    }
+    else {
+        res.status(403).send("incorrect email or password");
+    }
+
+});
+
+/* 
+* /verify/:token - GET - verify email link
+*/
+app.get("/verify/:token", async (req, res) => {
+    const token = req.params.token;
+    let error = false;
+
+    result = await users.findOne({
+        where: {
+            "token": {
+                [Op.eq]: token,
+            },
+        },
+    })
+        .catch((err) => {
+            error = true;
+        });
+
+    if (result == null || error) {
+        return res.status(409).send("token is invalid or expired");
+    }
+
+    if (result.isActive == 1) {
+        return res.status(409).send("email is already verified");
+    }
+
+    await users.update({
+        "token": uuidv1(),
+        "uuid": uuidv4(),
+        "isActive": 1,
+    }, {
+        where: {
+            "id": {
+                [Op.eq]: result.id,
+            },
+        },
+    })
+        .then((result) => {
+            res.send("SUCCESS");
+        })
+        .catch((err) => {
+            res.status(403).send("token is invalid or expired");
         });
 });
 
