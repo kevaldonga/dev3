@@ -9,7 +9,7 @@ const { validatePassword } = require('./validations/user');
 const { addUUID, removeUUID } = require('../middleware/uuidfileop');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { roleCheck } = require('../middleware/rolecheck');
-const JWTPRIVATEKEY = 'FASTSPEED';
+const JWTPRIVATEKEY = process.env.JWT;
 
 app.use(bodyParser.json());
 

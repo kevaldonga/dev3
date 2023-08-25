@@ -3,7 +3,7 @@ const fs = require('fs');
 const readline = require('readline');
 const { fetchHTTPCookies } = require('./fetchhttpcookies');
 
-const JWTPRIVATEKEY = 'FASTSPEED';
+const JWTPRIVATEKEY = process.env.JWT;
 
 const checkjwt = (req, res, next) => {
     let jwtToken;
