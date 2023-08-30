@@ -10,6 +10,8 @@ const { addUUID, removeUUID } = require('../middleware/uuidfileop');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { roleCheck } = require('../middleware/rolecheck');
 const { v4: uuidv4, v1: uuidv1 } = require('uuid');
+const send = require('../utils/mailer');
+const generatePassword = require('../utils/generatePassword');
 
 const JWTPRIVATEKEY = process.env.JWT;
 
@@ -69,7 +71,22 @@ app.put("/verify", async (req, res) => {
     const check = bcrypt.compareSync(req.body.password, password);
 
     if (check) {
-        res.send(`http://localhost:5000/users/verify/${result.token}`);
+        const link = `http://localhost:5000/users/verify/${result.token}`;
+        let htmlText = '<h1> <b> email verificatio link </b> </h1><br>';
+        htmlText += '<p> to verify your email please click <a href="';
+        htmlText += link;
+        htmlText += '" > </a> </p>';
+        await send({
+            to: result.email,
+            subject: "verify link",
+            html: htmlText,
+        })
+            .then((result) => {
+                res.send("check your email");
+            })
+            .catch((err) => {
+                res.status(403).send(err);
+            });
     }
     else {
         res.status(403).send("incorrect email or password");
@@ -315,8 +332,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
     checked = await bcrypt.compare(oldPassword, result.password);
 
     if (!checked || !validatePassword(oldPassword)) {
-        res.status(403).send("Invalid password!!");
-        return;
+        return res.status(403).send("Invalid password!!");
     }
 
     userdetails = await users.updatePassword(newPassword, uuid);
@@ -330,6 +346,74 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
     jwttoken = jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' });
     res.cookie("accessToken", jwttoken, { secure: true, httpOnly: true });
     res.send(jwttoken);
+});
+
+/* 
+* /forgotPassword/:token - PUT - send new generated password to user email
+*/
+app.put("/forgotPassword/:token", async (req, res) => {
+    const token = req.params.token;
+    let error = false;
+
+    result = await users.findOne({
+        where: {
+            'token': {
+                [Op.eq]: token,
+            },
+        },
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        });
+
+    if (error) return;
+
+    if (result == null) {
+        return res.status(409).send("Invalid resource");
+    }
+
+    await users.update({
+        token: uuidv1(),
+    })
+        .catch((err) => {
+            res.status(403).send(err);
+        });
+
+    const newPassword = generatePassword();
+
+    let htmlText = '<h1>your new password</h1><br>your new generated password is - ';
+    htmlText = `<b>${newPassword}</b>`;
+
+    const newHashedPassword = bcrypt.hashSync(newPassword, 15);
+
+    await users.update({
+        "password": newHashedPassword,
+    }, {
+        where: {
+            "id": {
+                [Op.eq]: result.id,
+            },
+        },
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send(err);
+        });
+
+    if (error) return;
+
+    await send({
+        email: result.email,
+        title: "Generated password",
+        html: htmlText
+    })
+        .then((result) => {
+            res.send("SUCCESS");
+        })
+        .catch((err) => {
+            res.status(403).send(err);
+        });
 });
 
 /*

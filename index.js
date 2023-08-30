@@ -52,4 +52,4 @@ app.use("/categories", categoryRouter);
 // comments
 app.use("/comments", commentRouter);
 
-app.listen(PORT, () => { console.log(`server is running on ${PORT}`) });
+app.listen(PORT, () => { console.log(`server is running on ${PORT}`); });
