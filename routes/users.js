@@ -143,7 +143,7 @@ app.get("/verify/:token", async (req, res) => {
 * / - POST - create a user
 */
 app.post('/', async (req, res) => {
-    value = nullCheck(req.body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token', 'role'] });
+    value = nullCheck(req.body, { nonNullableFields: ['username', 'email', 'password'], mustBeNullFields: [...defaultNullFields, 'token', 'role'] });
     if (typeof (value) == 'string') return res.status(400).send(value);
 
     await users.create(req.body)
@@ -223,15 +223,15 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
 * /login - POST - login user
 */
 app.post('/login', async (req, res) => {
-    value = nullCheck(req.body, { nonNullableFields: ['username', 'password'] });
+    value = nullCheck(req.body, { nonNullableFields: ['email', 'password'] });
     if (typeof (value) == 'string') return res.status(400).send(value);
     let error = false;
     const role = req.body.role;
 
     result = await users.findOne({
         where: {
-            "username": {
-                [Op.eq]: req.body.username,
+            "email": {
+                [Op.eq]: req.body.email,
             },
         },
         include: "profiles",

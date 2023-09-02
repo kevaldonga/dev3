@@ -7,29 +7,29 @@ const JWTPRIVATEKEY = process.env.JWT;
 
 const checkjwt = (req, res, next) => {
     let jwtToken;
-    if (req.headers.authorization === undefined) {
-        const cookieStr = req.headers.cookie;
-
-        const cookies = fetchHTTPCookies(cookieStr);
-
-        jwtToken = cookies.jwt;
-    }
-    else {
-        jwtToken = req.headers.authorization.split(' ')[1];
-    }
-
-    if (jwtToken === undefined) {
-        res.status(403).send('Access denied');
-        return;
-    }
     try {
+        if (req.headers.authorization === undefined) {
+            const cookieStr = req.headers.cookie;
+
+            const cookies = fetchHTTPCookies(cookieStr);
+
+            jwtToken = cookies.jwt;
+        }
+        else {
+            jwtToken = req.headers.authorization.split(' ')[1];
+        }
+
+        if (jwtToken === undefined) {
+            res.status(403).send('Access denied');
+            return;
+        }
         let user = jwt.verify(jwtToken, JWTPRIVATEKEY);
         req.userinfo = user;
         next();
     } catch {
         res.status(401).send('Invalid');
     }
-}
+};
 
 const authorized = (req, res, next) => {
     if (req.params.uuid == req.userinfo.auth) {
@@ -37,7 +37,7 @@ const authorized = (req, res, next) => {
     } else {
         res.status(403).send('Access denied');
     }
-}
+};
 
 const authorizedForProfileId = (req, res, next) => {
     if (req.params.profileId == req.userinfo._sa) {
@@ -45,7 +45,7 @@ const authorizedForProfileId = (req, res, next) => {
     } else {
         res.status(403).send('Access denied');
     }
-}
+};
 
 const authorizedForProfileUUID = (req, res, next) => {
     if (req.params.profileUUID == req.userinfo.auth2) {
@@ -53,12 +53,12 @@ const authorizedForProfileUUID = (req, res, next) => {
     } else {
         res.status(403).send('Access denied');
     }
-}
+};
 
 const addProfileId = (req, res, next) => {
     req.body.profileId = req.userinfo._sa;
     next();
-}
+};
 
 const checkActiveUUID = (req, res, next) => {
     const myuuid = req.userinfo.auth;
@@ -79,7 +79,7 @@ const checkActiveUUID = (req, res, next) => {
     rl.on('close', () => {
         res.status(403).send('Access denied');
     });
-}
+};
 
 module.exports = {
     checkjwt: checkjwt,
