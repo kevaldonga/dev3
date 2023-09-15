@@ -26,13 +26,13 @@ app.get("/:profileUUID/followers", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const profileId = result.id;
@@ -49,7 +49,7 @@ app.get("/:profileUUID/followers", async (req, res) => {
             res.send(getObj(result, "followers"));
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -70,13 +70,13 @@ app.get("/:profileUUID/followings", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            req.status(403).send(err);
+            req.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const profileId = result.id;
@@ -95,7 +95,7 @@ app.get("/:profileUUID/followings", async (req, res) => {
             res.send(getObj(result, "followings"));
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -118,13 +118,13 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const profileId = result.id;
@@ -139,13 +139,13 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const beingFollowedProfileId = result.id;
@@ -160,11 +160,11 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     if (error) return;
@@ -179,7 +179,7 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
@@ -190,10 +190,10 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
         "followerProfileId": profileId,
     })
         .then((result) => {
-            res.send("SUCCESS");
+            res.send({ res: "SUCCESS" });
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -216,13 +216,13 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const profileId = result.id;
@@ -237,13 +237,13 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const beingFollowedProfileId = result.id;
@@ -258,7 +258,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
@@ -273,7 +273,7 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
@@ -291,14 +291,14 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 

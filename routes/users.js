@@ -32,14 +32,14 @@ app.get('/:uuid', checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
                 res.send(result);
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -63,7 +63,7 @@ app.put("/verify", async (req, res) => {
         });
 
     if (result == null || error) {
-        return res.status(409).send("incorrect email or password");
+        return res.status(409).send({ res: "incorrect email or password" });
     }
 
     const password = result.password;
@@ -82,14 +82,14 @@ app.put("/verify", async (req, res) => {
             html: htmlText,
         })
             .then((result) => {
-                res.send("check your email");
+                res.send({ res: "check your email" });
             })
             .catch((err) => {
-                res.status(403).send(err);
+                res.status(403).send({ error: true, res: err.message });
             });
     }
     else {
-        res.status(403).send("incorrect email or password");
+        res.status(403).send({ error: true, res: "incorrect email or password" });
     }
 
 });
@@ -113,11 +113,11 @@ app.get("/verify/:token", async (req, res) => {
         });
 
     if (result == null || error) {
-        return res.status(409).send("token is invalid or expired");
+        return res.status(409).send({ error: true, res: "token is invalid or expired" });
     }
 
     if (result.isActive == 1) {
-        return res.status(409).send("email is already verified");
+        return res.status(409).send({ res: "email is already verified" });
     }
 
     await users.update({
@@ -132,10 +132,10 @@ app.get("/verify/:token", async (req, res) => {
         },
     })
         .then((result) => {
-            res.send("SUCCESS");
+            res.send({ res: "SUCCESS" });
         })
         .catch((err) => {
-            res.status(403).send("token is invalid or expired");
+            res.status(403).send({ error: true, res: "token is invalid or expired" });
         });
 });
 
@@ -151,7 +151,7 @@ app.post('/', async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -175,15 +175,15 @@ app.put("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res)
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -207,15 +207,15 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -238,13 +238,13 @@ app.post('/login', async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("Invalid resource");
+        res.status(409).send({ error: true, res: "Invalid resource" });
         return;
     }
 
@@ -259,7 +259,7 @@ app.post('/login', async (req, res) => {
         res.cookie('jwt', jt, { path: '/', httpOnly: true, secure: true });
         res.send(jt);
     } else {
-        res.status(403).send('Invalid');
+        res.status(403).send({ error: true, res: 'Invalid' });
     }
 });
 
@@ -281,14 +281,14 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -317,13 +317,13 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("Invalid resource");
+        res.status(409).send({ error: true, res: "Invalid resource" });
         return;
     }
 
@@ -332,7 +332,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
     checked = await bcrypt.compare(oldPassword, result.password);
 
     if (!checked || !validatePassword(oldPassword)) {
-        return res.status(403).send("Invalid password!!");
+        return res.status(403).send({ error: true, res: "Invalid password!!" });
     }
 
     userdetails = await users.updatePassword(newPassword, uuid);
@@ -364,20 +364,20 @@ app.put("/forgotPassword/:token", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     await users.update({
         token: uuidv1(),
     })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     const newPassword = generatePassword();
@@ -398,7 +398,7 @@ app.put("/forgotPassword/:token", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
@@ -409,10 +409,10 @@ app.put("/forgotPassword/:token", async (req, res) => {
         html: htmlText
     })
         .then((result) => {
-            res.send("SUCCESS");
+            res.send({ res: "SUCCESS" });
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -434,13 +434,13 @@ app.delete('/:token', checkjwt, async (req, res) => {
     })
         .catch((err) => {
             error = false;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        res.status(409).send("Invalid resource");
+        res.status(409).send({ error: true, res: "Invalid resource" });
         return;
     }
 
@@ -455,15 +455,15 @@ app.delete('/:token', checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
                 removeUUID(uuid);
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -487,13 +487,13 @@ app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, asyn
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err);
+            res.status(409).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const userId = result.id;
@@ -512,7 +512,7 @@ app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, asyn
             res.send(get(result, "hashtags"));
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -536,13 +536,13 @@ app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, asy
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err);
+            res.status(409).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const userId = result.id;
@@ -561,7 +561,7 @@ app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, asy
             res.send(get(result, "reactions"));
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 

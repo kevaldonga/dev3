@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 */
 app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['profileId'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: value });
     let error = false;
 
     const profileId = req.body.profileId;
@@ -30,23 +30,23 @@ app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ res: "Invalid resource", error: true });
     }
 
     const postId = result.id;
 
     await bookmarkPostsRelation.create({ "postId": postId, "profileId": profileId })
         .then((result) => {
-            res.send("SUCCESS");
+            res.send({ res: { res: "SUCCESS" }, error: false });
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -70,13 +70,13 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const profileId = result.id;
@@ -95,7 +95,7 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
             res.send(getObj(result, "posts"));
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -114,14 +114,14 @@ app.delete("/:bookmarkUUID", checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 

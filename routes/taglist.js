@@ -28,7 +28,7 @@ app.post("/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, a
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -56,14 +56,14 @@ app.put("/:tagUUID/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiv
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -86,14 +86,14 @@ app.delete("/:tagUUID", checkjwt, authorizedAsModerator, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -112,14 +112,14 @@ app.get("/:tagUUID", async (req, res) => {
     })
         .then((result) => {
             if (result == null) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
                 res.send(result);
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -142,17 +142,17 @@ app.get("/:tagUUID/followers", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     if (result == 0) {
-        res.status(409).send("Invalid resource");
+        res.status(409).send({ error: true, res: "Invalid resource" });
         return;
     }
 
@@ -172,7 +172,7 @@ app.get("/:tagUUID/followers", async (req, res) => {
             res.send(getObj(result, "profiles"));
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -195,13 +195,13 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const profileId = result.id;
@@ -215,13 +215,13 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const tagId = result.id;
@@ -236,7 +236,7 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
@@ -246,10 +246,10 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
         "hashtagId": tagId,
     })
         .then((result) => {
-            res.send("SUCCESS");
+            res.send({ res: "SUCCESS" });
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -272,13 +272,13 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const profileId = result.id;
@@ -292,13 +292,13 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const tagId = result.id;
@@ -313,7 +313,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
@@ -330,14 +330,14 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -360,13 +360,13 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const hashtagId = result.id;
@@ -381,13 +381,13 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const userId = result.id;
@@ -397,10 +397,10 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
         "userId": userId,
     })
         .then((result) => {
-            res.send("SUCCESS");
+            res.send({ res: "SUCCESS" });
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -423,13 +423,13 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const hashtagId = result.id;
@@ -444,13 +444,13 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const userId = result.id;
@@ -465,14 +465,14 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -495,13 +495,13 @@ app.get("/:tagUUID/moderators", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err);
+            res.status(409).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const tagId = result.id;
@@ -520,7 +520,7 @@ app.get("/:tagUUID/moderators", async (req, res) => {
             res.send(getObj(result, "profiles"));
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 

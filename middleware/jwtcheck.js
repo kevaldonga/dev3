@@ -20,14 +20,14 @@ const checkjwt = (req, res, next) => {
         }
 
         if (jwtToken === undefined) {
-            res.status(403).send('Access denied');
+            res.status(403).send({ error: true, res: 'Access denied' });
             return;
         }
         let user = jwt.verify(jwtToken, JWTPRIVATEKEY);
         req.userinfo = user;
         next();
     } catch {
-        res.status(401).send('Invalid');
+        res.status(401).send({ error: true, res: 'Invalid' });
     }
 };
 
@@ -35,7 +35,7 @@ const authorized = (req, res, next) => {
     if (req.params.uuid == req.userinfo.auth) {
         next();
     } else {
-        res.status(403).send('Access denied');
+        res.status(403).send({ error: true, res: 'Access denied' });
     }
 };
 
@@ -43,7 +43,7 @@ const authorizedForProfileId = (req, res, next) => {
     if (req.params.profileId == req.userinfo._sa) {
         next();
     } else {
-        res.status(403).send('Access denied');
+        res.status(403).send({ error: true, res: 'Access denied' });
     }
 };
 
@@ -51,7 +51,7 @@ const authorizedForProfileUUID = (req, res, next) => {
     if (req.params.profileUUID == req.userinfo.auth2) {
         next();
     } else {
-        res.status(403).send('Access denied');
+        res.status(403).send({ error: true, res: 'Access denied' });
     }
 };
 
@@ -77,7 +77,7 @@ const checkActiveUUID = (req, res, next) => {
     });
 
     rl.on('close', () => {
-        res.status(403).send('Access denied');
+        res.status(403).send({ error: true, res: 'Access denied' });
     });
 };
 

@@ -28,13 +28,13 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     req.body.profileId = result.id;
@@ -44,7 +44,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -62,14 +62,14 @@ app.get("/:commentUUID", async (req, res) => {
     })
         .then((result) => {
             if (result == null) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
                 res.send(result);
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -91,14 +91,14 @@ app.put("/:commentUUID", checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -117,14 +117,14 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -148,13 +148,13 @@ app.get("/:commentUUID/reactions", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const commentId = result.id;
@@ -172,7 +172,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -196,13 +196,13 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
 
         .catch((err) => {
             error = true;
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const commentId = result.id;
@@ -219,14 +219,14 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 

@@ -7,7 +7,7 @@ const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { authorizedAsModerator } = require('../middleware/rolecheck');
 const getObj = require('./functions/include');
 
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
 /*
 * / - POST - create a reaction
@@ -25,7 +25,7 @@ app.post("/", checkjwt, checkActiveUUID, authorizedAsModerator, async (req, res)
             res.send(result);
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -44,14 +44,14 @@ app.get("/:reactionUUID", async (req, res) => {
     })
         .then((result) => {
             if (result == null) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
                 res.send(result);
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -74,14 +74,14 @@ app.delete("/:reactionUUID", checkjwt, checkActiveUUID, authorizedAsModerator, a
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -105,13 +105,13 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err);
+            res.status(409).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const userId = result.id;
@@ -126,13 +126,13 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err);
+            res.status(409).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const reactionId = result.id;
@@ -142,10 +142,10 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
         "userId": userId,
     })
         .then((result) => {
-            res.send("SUCCESS");
+            res.send({ res: "SUCCESS" });
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -169,13 +169,13 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err);
+            res.status(409).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const userId = result.id;
@@ -190,13 +190,13 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err);
+            res.status(409).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const reactionId = result.id;
@@ -213,14 +213,14 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     })
         .then((result) => {
             if (result == 0) {
-                res.status(409).send("Invalid resource");
+                res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send("SUCCESS");
+                res.send({ res: "SUCCESS" });
             }
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 
@@ -243,13 +243,13 @@ app.get("/:reactionUUID/moderators", async (req, res) => {
     })
         .catch((err) => {
             error = true;
-            res.status(409).send(err);
+            res.status(409).send({ error: true, res: err.message });
         });
 
     if (error) return;
 
     if (result == null) {
-        return res.status(409).send("Invalid resource");
+        return res.status(409).send({ error: true, res: "Invalid resource" });
     }
 
     const reactionId = result.id;
@@ -268,7 +268,7 @@ app.get("/:reactionUUID/moderators", async (req, res) => {
             res.send(getObj(result, "users"));
         })
         .catch((err) => {
-            res.status(403).send(err);
+            res.status(403).send({ error: true, res: err.message });
         });
 });
 

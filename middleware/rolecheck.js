@@ -6,18 +6,18 @@ const authorizedAsAdmin = (req, res, next) => {
         next();
     }
     else {
-        res.status(403).send("forbidden");
+        res.status(403).send({ error: true, res: "forbidden" });
     }
-}
+};
 
 const authorizedAsModerator = (req, res, next) => {
     if (req.userinfo.role === 'moderator') {
         next();
     }
     else {
-        res.status(403).send("forbidden");
+        res.status(403).send({ error: true, res: "forbidden" });
     }
-}
+};
 
 roleCheck = async (uuid, role) => {
     try {
@@ -28,7 +28,7 @@ roleCheck = async (uuid, role) => {
                 },
             },
             attributes: ['role'],
-        })
+        });
     }
     catch (err) {
         return err.message;
@@ -37,6 +37,6 @@ roleCheck = async (uuid, role) => {
     if (result.role !== role) {
         return "forbidden";
     }
-}
+};
 
 module.exports = { authorizedAsAdmin: authorizedAsAdmin, authorizedAsModerator: authorizedAsModerator, roleCheck: roleCheck };
