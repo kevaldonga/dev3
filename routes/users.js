@@ -12,6 +12,7 @@ const { roleCheck } = require('../middleware/rolecheck');
 const { v4: uuidv4, v1: uuidv1 } = require('uuid');
 const send = require('../utils/mailer');
 const generatePassword = require('../utils/generatePassword');
+const nullcheck = require('./validations/nullcheck');
 
 const JWTPRIVATEKEY = process.env.JWT;
 
@@ -35,7 +36,7 @@ app.get('/:uuid', checkjwt, async (req, res) => {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send(result);
+                res.send({ res: result });
             }
         })
         .catch((err) => {
@@ -48,7 +49,7 @@ app.get('/:uuid', checkjwt, async (req, res) => {
 */
 app.put("/verify", async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['username', 'password'], mustBeNullFields: [...defaultNullFields, 'token', 'role'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
     let error = false;
 
     result = await users.findOne({
@@ -144,11 +145,11 @@ app.get("/verify/:token", async (req, res) => {
 */
 app.post('/', async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['username', 'email', 'password'], mustBeNullFields: [...defaultNullFields, 'token', 'role'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     await users.create(req.body)
         .then((result) => {
-            res.send(result);
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });
@@ -224,7 +225,7 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
 */
 app.post('/login', async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['email', 'password'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
     let error = false;
     const role = req.body.role;
 
@@ -269,7 +270,7 @@ app.post('/login', async (req, res) => {
 */
 app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['username', 'token'], mustBeNullFields: [...defaultNullFields, 'password', 'role'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     const token = req.body.token;
     await users.update(req.body, {
@@ -299,7 +300,7 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
 */
 app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['newPassword', 'oldPassword', 'token'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
     let error = false;
 
     const oldPassword = req.body.oldPassword;
@@ -517,7 +518,7 @@ app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, asyn
 });
 
 /* 
-* /:uuid//moderator/hashtags - GET - get all reactions which user has been moderating
+* /:uuid/moderator/hashtags - GET - get all reactions which user has been moderating
 * @check check jwt signature, match uuid from payload, check uuid from txt file
 */
 app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, async (req, res) => {
@@ -559,6 +560,48 @@ app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, asy
     })
         .then((result) => {
             res.send(get(result, "reactions"));
+        })
+        .catch((err) => {
+            res.status(403).send({ error: true, res: err.message });
+        });
+});
+
+/* 
+* /search - GET - search user by username
+*/
+app.get('/search', async (req, res) => {
+    value = nullCheck(req.body, { nonNullableFields: ['query'] });
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 0 : parseInt(req.query.limit);
+
+    const query = req.body.query;
+
+    await users.findAll({
+        where: {
+            [Op.or]: [
+                {
+                    'username': {
+                        [Op.startsWith]: query,
+                    },
+                },
+                {
+                    'username': {
+                        [Op.endsWith]: query,
+                    },
+                },
+                {
+                    'username': {
+                        [Op.like]: `%${query}%`,
+                    },
+                },
+            ]
+        },
+        offset: offset,
+        limit: limit,
+    })
+        .then((result) => {
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });

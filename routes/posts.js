@@ -5,6 +5,7 @@ const { Op } = require('sequelize');
 const { checkjwt, addProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const getObj = require('./functions/include');
+const nullcheck = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
 /*
@@ -18,10 +19,10 @@ app.use(bodyParser.json());
 */
 app.post("/", checkjwt, addProfileId, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['profileId', 'title', 'media', 'readDuration'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
     await posts.create(req.body)
         .then((result) => {
-            res.send(result);
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });
@@ -45,7 +46,7 @@ app.get("/:postUUID", async (req, res) => {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send(result);
+                res.send({ res: result });
             }
         })
         .catch((err) => {
@@ -59,7 +60,7 @@ app.get("/:postUUID", async (req, res) => {
 */
 app.put("/:postUUID", checkjwt, async (req, res) => {
     value = nullCheck(req.body, { mustBeNullFields: [...defaultNullFields, 'profileId', 'reactionCount'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     const postUUID = req.params.postUUID;
     await posts.update(req.body, {
@@ -149,7 +150,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
         include: "reactions",
     })
         .then((result) => {
-            res.send(result);
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });
@@ -196,7 +197,7 @@ app.get("/:postUUID/comments", async (req, res) => {
         offset: offset,
     })
         .then((result) => {
-            res.send(result);
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });
@@ -869,6 +870,62 @@ app.get("/:profileUUID/pinned/all", async (req, res) => {
     })
         .then((result) => {
             res.send(getObj(result, "pinnedposts"));
+        })
+        .catch((err) => {
+            res.status(403).send({ error: true, res: err.message });
+        });
+});
+
+/* 
+* /search - GET - search in post title / description
+*/
+app.get('/search', async (req, res) => {
+    const value = nullCheck(req.body, { nonNullableFields: ['query'] });
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
+    const query = req.body.query;
+
+    await posts.findAll({
+        where: {
+            [Op.or]: [
+                {
+                    "title": {
+                        [Op.startsWith]: query,
+                    }
+                },
+                {
+                    "title": {
+                        [Op.endsWith]: query,
+                    }
+                },
+                {
+                    "title": {
+                        [Op.like]: `%${query}%`,
+                    }
+                },
+                {
+                    "description": {
+                        [Op.startsWith]: query,
+                    }
+                },
+                {
+                    "description": {
+                        [Op.endsWith]: query,
+                    }
+                },
+                {
+                    "description": {
+                        [Op.like]: `%${query}%`,
+                    }
+                },
+            ]
+        },
+        offset: offset,
+        limit: limit,
+    })
+        .then((result) => {
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });

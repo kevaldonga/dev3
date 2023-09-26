@@ -27,7 +27,7 @@ app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send(result);
+                res.send({ res: result });
             }
         })
         .catch((err) => {
@@ -40,11 +40,11 @@ app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
 */
 app.post('/:uuid', async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['userId', 'name'], mustBeNullFields: [...defaultNullFields, 'followers', 'followings'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     await profiles.create(req.body)
         .then((result) => {
-            res.send(result);
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });
@@ -57,7 +57,7 @@ app.post('/:uuid', async (req, res) => {
 */
 app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
     value = nullCheck(req.body, { mustBeNullFields: [...defaultNullFields, 'followers', 'followings', 'userId'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     const profileUUID = req.params.profileUUID;
     await profiles.update(req.body, {

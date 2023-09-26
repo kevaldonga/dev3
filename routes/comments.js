@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 */
 app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['comment', 'postId'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
     let error = false;
 
     const profileUUID = req.params.profileUUID;
@@ -41,7 +41,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
 
     await comments.create(req.body)
         .then((result) => {
-            res.send(result);
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });
@@ -65,7 +65,7 @@ app.get("/:commentUUID", async (req, res) => {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send(result);
+                res.send({ res: result });
             }
         })
         .catch((err) => {
@@ -79,7 +79,7 @@ app.get("/:commentUUID", async (req, res) => {
 */
 app.put("/:commentUUID", checkjwt, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['comment'], mustBeNullFields: [...defaultNullFields, 'postId', 'profileId', 'reactionCount'] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     const commentUUID = req.params.commentUUID;
     await comments.update(req.body, {
@@ -169,7 +169,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
         offset: offset,
     })
         .then((result) => {
-            res.send(result);
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });

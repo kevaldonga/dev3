@@ -15,14 +15,14 @@ app.use(bodyParser.json());
 */
 app.post("/", checkjwt, checkActiveUUID, authorizedAsModerator, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['reaction', 'label'], mustBeNullFields: [...defaultNullFields] });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     const result = roleCheck(uuid, 'moderator');
     if (typeof (result) == 'string') return res.status(403).send(result);
 
     await reactions.create(req.body)
         .then((result) => {
-            res.send(result);
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });
@@ -47,7 +47,7 @@ app.get("/:reactionUUID", async (req, res) => {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send(result);
+                res.send({ res: result });
             }
         })
         .catch((err) => {

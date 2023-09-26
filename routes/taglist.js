@@ -18,14 +18,14 @@ app.post("/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiveUUID, a
         nonNullableFields: ['tag', 'image', 'color', 'description'],
         mustBeNullFields: [...defaultNullFields, 'count', 'followerCount']
     });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     const result = roleCheck(uuid, 'moderator');
     if (typeof (result) == 'string') return res.status(403).send(result);
 
     await tagList.create(req.body)
         .then((result) => {
-            res.send(result);
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });
@@ -42,7 +42,7 @@ app.put("/:tagUUID/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiv
         nonNullableFields: ['image', 'color', 'description'],
         mustBeNullFields: [...defaultNullFields, 'count', 'followerCount', 'tag']
     });
-    if (typeof (value) == 'string') return res.status(400).send(value);
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     const result = roleCheck(uuid, 'moderator');
     if (typeof (result) == 'string') return res.status(403).send(result);
@@ -115,7 +115,7 @@ app.get("/:tagUUID", async (req, res) => {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                res.send(result);
+                res.send({ res: result });
             }
         })
         .catch((err) => {
@@ -518,6 +518,48 @@ app.get("/:tagUUID/moderators", async (req, res) => {
     })
         .then((result) => {
             res.send(getObj(result, "profiles"));
+        })
+        .catch((err) => {
+            res.status(403).send({ error: true, res: err.message });
+        });
+});
+
+/* 
+* /search - GET - search hashtag by query
+*/
+app.get('/search', async (req, res) => {
+    const value = nullCheck(req.body, { nonNullableFields: ['query'] });
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
+    const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
+    const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
+
+    const query = req.body.query;
+
+    await tagList.findAll({
+        where: {
+            [Op.or]: [
+                {
+                    "tag": {
+                        [Op.startsWith]: query,
+                    }
+                },
+                {
+                    "tag": {
+                        [Op.endsWith]: query,
+                    }
+                },
+                {
+                    "tag": {
+                        [Op.like]: `%${query}%`,
+                    }
+                }
+            ]
+        },
+        offset: offset,
+        limit: limit,
+    })
+        .then((result) => {
+            res.send({ res: result });
         })
         .catch((err) => {
             res.status(403).send({ error: true, res: err.message });
