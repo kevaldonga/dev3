@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { checkjwt, authorized, checkActiveUUID } = require('../middleware/jwtcheck');
 const { validatePassword } = require('./validations/user');
-const { addUUID, removeUUID } = require('../middleware/uuidfileop');
+const { updateUserState } = require('../middleware/uuidfileop');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { roleCheck } = require('../middleware/rolecheck');
 const { v4: uuidv4, v1: uuidv1 } = require('uuid');
@@ -256,7 +256,7 @@ app.post('/login', async (req, res) => {
             userObj['role'] = role;
         }
         let jt = jwt.sign(userObj, JWTPRIVATEKEY, { 'expiresIn': '30D' });
-        addUUID(result.uuid);
+        updateUserState(result.uuid, 1);
         res.cookie('jwt', jt, { path: '/', httpOnly: true, secure: true });
         res.send(jt);
     } else {
@@ -342,8 +342,8 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
         'auth2': req.userinfo.auth2,
         '_sa': req.userinfo._sa,
     };
-    addUUID(userdetails.uuid);
-    removeUUID(uuid);
+    updateUserState(userdetails.uuid, 1);
+    updateUserState(uuid, 0);
     jwttoken = jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' });
     res.cookie("accessToken", jwttoken, { secure: true, httpOnly: true });
     res.send(jwttoken);
@@ -418,10 +418,10 @@ app.put("/forgotPassword/:token", async (req, res) => {
 });
 
 /*
-* /:token - DELETE - delete a user by given uuid
+* /:token - DELETE - delete a account by given uuid
 * @check check jwt signature
 */
-app.delete('/:token', checkjwt, async (req, res) => {
+app.delete('/deleteAccount/:token', checkjwt, async (req, res) => {
     const token = req.params.token;
     let error = false;
 
@@ -447,7 +447,25 @@ app.delete('/:token', checkjwt, async (req, res) => {
 
     const uuid = result.uuid;
 
-    await users.destroy({
+    await profiles.destroy({
+        where: {
+            "userId": {
+                [Op.eq]: result.id,
+            },
+        },
+    })
+        .catch((err) => {
+            error = true;
+            res.status(403).send({ error: true, res: err.message });
+        });
+
+    if (error) return;
+
+    updateUserState(uuid, -1);
+
+    await users.update({
+        "isActive": -1,
+    }, {
         where: {
             "token": {
                 [Op.eq]: token,
@@ -459,7 +477,7 @@ app.delete('/:token', checkjwt, async (req, res) => {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                removeUUID(uuid);
+                updateUserState(uuid, 0);
                 res.send({ res: "SUCCESS" });
             }
         })

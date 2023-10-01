@@ -1,26 +1,19 @@
-const fs = require('fs');
+const { createClient } = require('redis');
 
-const addUUID = (uuid) => {
-    fs.appendFile(`${__dirname}/uuids.txt`, `${uuid}\n`, (err) => {
-        if (err) throw err;
-    });
-}
+const client = createClient();
 
-const removeUUID = (uuid) => {
-    const filename = `${__dirname}/uuids.txt`;
-    fs.readFile(filename, "utf8", (err, data) => {
-        if (err) throw err;
-        fs.writeFile(filename, removeLines(data, uuid), "utf8", (err) => {
-            if (err) throw err;
-        });
-    });
-}
+const connect = async () => await client.connect();
 
-const removeLines = (data, uuid) => {
-    return data
-        .split('\n')
-        .filter((val, _) => !val.includes(uuid))
-        .join('\n');
-}
+const updateUserState = async (uuid, isActive) => {
+    connect();
 
-module.exports = { addUUID: addUUID, removeUUID: removeUUID };
+    await client.set(uuid, isActive);
+};
+
+const getUserState = async (uuid) => {
+    const result = await client.get(uuid);
+
+    return result == null ? 0 : result;
+};
+
+module.exports = { updateUserState: updateUserState, getUserState: getUserState };

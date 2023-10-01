@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
-const readline = require('readline');
 const { fetchHTTPCookies } = require('./fetchhttpcookies');
+const { getUserState } = require('./uuidfileop');
 
 const JWTPRIVATEKEY = process.env.JWT;
 
@@ -63,22 +62,11 @@ const addProfileId = (req, res, next) => {
 const checkActiveUUID = (req, res, next) => {
     const myuuid = req.userinfo.auth;
 
-    const fileStream = fs.createReadStream(`${__dirname}/uuids.txt`);
-    const rl = readline.createInterface({
-        input: fileStream,
-        crlfDelay: Infinity
-    });
+    const isActive = getUserState(myuuid);
 
-    rl.on('line', (line) => {
-        if (line.includes(myuuid)) {
-            rl.removeAllListeners();
-            next();
-        }
-    });
-
-    rl.on('close', () => {
-        res.status(403).send({ error: true, res: 'Access denied' });
-    });
+    if (isActive != 1) {
+        res.status(403).send("Access denied");
+    }
 };
 
 module.exports = {
