@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 const { checkjwt, authorizedForProfileUUID, addProfileId } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '1mb' }));
 
 /* 
 * /:profileUUID - POST - create a comment

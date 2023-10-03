@@ -6,7 +6,7 @@ const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 const getObj = require('./functions/include');
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '1mb' }));
 
 /*
 * /:profileId - GET - get a user profile

@@ -6,7 +6,7 @@ const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck')
 const { nullCheck, defaultNullFields } = require("./validations/nullcheck");
 const getObj = require('./functions/include');
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '1mb' }));
 
 /*
 * /:postUUID - GET - get category(s) of a post by postId 

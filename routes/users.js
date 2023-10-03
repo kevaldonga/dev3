@@ -16,7 +16,7 @@ const nullcheck = require('./validations/nullcheck');
 
 const JWTPRIVATEKEY = process.env.JWT;
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '1mb' }));
 
 /*
 * /:uuid - GET - get a user

@@ -21,7 +21,7 @@ const corsOption = {
 
 app.use(cors(corsOption));
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '1mb' }));
 
 // Routes
 

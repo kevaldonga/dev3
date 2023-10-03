@@ -6,7 +6,7 @@ const { checkjwt, addProfileId, authorizedForProfileUUID } = require('../middlew
 const { nullCheck } = require('./validations/nullcheck');
 const getObj = require('./functions/include');
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '1mb' }));
 
 /*
 * /:postUUID - POST - add a post to bookmark

@@ -7,7 +7,7 @@ const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const getObj = require('./functions/include');
 const nullcheck = require('./validations/nullcheck');
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '1mb' }));
 /*
 / resource GET / POST - GET thi list, POST thi create
 / resource / uuid - GET, PUT, DELETE

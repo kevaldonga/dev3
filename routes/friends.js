@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 const getObj = require('./functions/include');
 const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '1mb' }));
 
 /* 
 * /:profileUUID/followers - GET - get all followers of a user
