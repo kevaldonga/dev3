@@ -6,7 +6,7 @@ const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 const getObj = require('./functions/include');
 
-app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.json());
 
 /*
 * /:profileId - GET - get a user profile
@@ -115,44 +115,40 @@ app.get("/:profileUUID/tags", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
+    try {
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
-    if (error) return;
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    const profileId = result.id;
+        const profileId = result.id;
 
-    await tagUserRelation.findAll({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
+        await tagUserRelation.findAll({
+            where: {
+                "profileId": {
+                    [Op.eq]: profileId,
+                },
             },
-        },
-        limit: limit,
-        offset: offset,
-        include: "tags",
-    })
-        .then((result) => {
-            res.send(getObj(result, "tags"));
+            limit: limit,
+            offset: offset,
+            include: "tags",
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send(getObj(result, "tags"));
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -162,75 +158,58 @@ app.get("/:profileUUID/tags", async (req, res) => {
 app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const tagUUID = req.params.tagUUID;
-    let error = false;
 
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
+    try {
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const tagId = result.id;
-
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
-            },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(409).send({ error: true, res: err.message });
-        });
-
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const profileId = result.id;
-
-    // increment used count in taglist 
-    await tagList.increment("count", {
-        where: {
-            "id": {
-                [Op.eq]: tagId,
-            },
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
         }
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+
+        const tagId = result.id;
+
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
+            },
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    await tagUserRelation.create({
-        "profileId": profileId,
-        "tagId": tagId,
-    })
-        .then((result) => {
-            res.send({ res: "SUCCESS" });
+        const profileId = result.id;
+
+        // increment used count in taglist 
+        await tagList.increment("count", {
+            where: {
+                "id": {
+                    [Op.eq]: tagId,
+                },
+            }
+        });
+
+        await tagUserRelation.create({
+            "profileId": profileId,
+            "tagId": tagId,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ res: "SUCCESS" });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -240,86 +219,69 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
 app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const tagUUID = req.params.tagUUID;
-    let error = false;
 
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
+    try {
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const tagId = result.id;
-
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
-            },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
-        });
-
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const profileId = result.id;
-
-    // decrement used count in taglist 
-    await tagList.decrement("count", {
-        where: {
-            "id": {
-                [Op.eq]: tagId,
-            },
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
         }
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+
+        const tagId = result.id;
+
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
+            },
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    await tagUserRelation.destory({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
-            },
-            "tagId": {
-                [Op.eq]: tagId,
-            },
-        },
-    })
-        .then((result) => {
-            if (result == 0) {
-                res.status(409).send({ error: true, res: "Invalid resource" });
+        const profileId = result.id;
+
+        // decrement used count in taglist 
+        await tagList.decrement("count", {
+            where: {
+                "id": {
+                    [Op.eq]: tagId,
+                },
             }
-            else {
-                res.send({ res: "SUCCESS" });
-            }
+        });
+
+        await tagUserRelation.destory({
+            where: {
+                "profileId": {
+                    [Op.eq]: profileId,
+                },
+                "tagId": {
+                    [Op.eq]: tagId,
+                },
+            },
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                if (result == 0) {
+                    res.status(409).send({ error: true, res: "Invalid resource" });
+                }
+                else {
+                    res.send({ res: "SUCCESS" });
+                }
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 module.exports = app;

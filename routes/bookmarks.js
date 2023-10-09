@@ -6,7 +6,7 @@ const { checkjwt, addProfileId, authorizedForProfileUUID } = require('../middlew
 const { nullCheck } = require('./validations/nullcheck');
 const getObj = require('./functions/include');
 
-app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.json());
 
 /*
 * /:postUUID - POST - add a post to bookmark
@@ -15,39 +15,34 @@ app.use(bodyParser.json({ limit: '1mb' }));
 app.post("/:postUUID", checkjwt, addProfileId, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['profileId'] });
     if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
-    let error = false;
 
-    const profileId = req.body.profileId;
-    const postUUID = req.params.postUUID;
+    try {
+        const profileId = req.body.profileId;
+        const postUUID = req.params.postUUID;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ res: "Invalid resource", error: true });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ res: "Invalid resource", error: true });
+        const postId = result.id;
+
+        await bookmarkPostsRelation.create({ "postId": postId, "profileId": profileId })
+            .then((result) => {
+                res.send({ res: { res: "SUCCESS" }, error: false });
+            });
     }
-
-    const postId = result.id;
-
-    await bookmarkPostsRelation.create({ "postId": postId, "profileId": profileId })
-        .then((result) => {
-            res.send({ res: { res: "SUCCESS" }, error: false });
-        })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /*
@@ -58,45 +53,40 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
+    try {
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const profileId = result.id;
 
-    const profileId = result.id;
-
-    result = await bookmarkPostsRelation.findAll({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
+        result = await bookmarkPostsRelation.findAll({
+            where: {
+                "profileId": {
+                    [Op.eq]: profileId,
+                },
             },
-        },
-        limit: limit,
-        offset: offset,
-        include: "posts",
-    })
-        .then((result) => {
-            res.send(getObj(result, "posts"));
+            limit: limit,
+            offset: offset,
+            include: "posts",
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send(getObj(result, "posts"));
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 

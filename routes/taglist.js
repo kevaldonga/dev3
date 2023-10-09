@@ -7,7 +7,7 @@ const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { authorizedAsModerator } = require('./../middleware/rolecheck');
 const getObj = require('./functions/include');
 
-app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.json());
 
 /* 
 * /moderator/:uuid - POST - create a tag
@@ -130,50 +130,44 @@ app.get("/:tagUUID/followers", async (req, res) => {
     const tagUUID = req.params.tagUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
+    try {
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        if (result == 0) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == 0) {
-        res.status(409).send({ error: true, res: "Invalid resource" });
-        return;
-    }
+        const tagId = result.id;
 
-    const tagId = result.id;
-
-    await hashtagFollowers.findAll({
-        where: {
-            "tagId": {
-                [Op.eq]: tagId,
+        await hashtagFollowers.findAll({
+            where: {
+                "tagId": {
+                    [Op.eq]: tagId,
+                },
             },
-        },
-        include: "profiles",
-        limit: limit,
-        offset: offset,
-    })
-        .then((result) => {
-            res.send(getObj(result, "profiles"));
+            include: "profiles",
+            limit: limit,
+            offset: offset,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send(getObj(result, "profiles"));
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -183,74 +177,57 @@ app.get("/:tagUUID/followers", async (req, res) => {
 app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const tagUUID = req.params.tagUUID;
-    let error = false;
 
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
+    try {
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const profileId = result.id;
-
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
-            },
-        },
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
-        });
-
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const tagId = result.id;
-
-    // increment following count in a tagList
-    await tagList.increment("followerCount", {
-        where: {
-            "id": {
-                [Op.eq]: tagId,
-            },
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
         }
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+
+        const profileId = result.id;
+
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
+            },
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    await hashtagFollowers.create({
-        "profileId": profileId,
-        "hashtagId": tagId,
-    })
-        .then((result) => {
-            res.send({ res: "SUCCESS" });
+        const tagId = result.id;
+
+        // increment following count in a tagList
+        await tagList.increment("followerCount", {
+            where: {
+                "id": {
+                    [Op.eq]: tagId,
+                },
+            }
+        });
+
+        await hashtagFollowers.create({
+            "profileId": profileId,
+            "hashtagId": tagId,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ res: "SUCCESS" });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -260,85 +237,68 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
 app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const tagUUID = req.params.hashtagUUID;
-    let error = false;
 
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
+    try {
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const profileId = result.id;
-
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
-            },
-        },
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
-        });
-
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const tagId = result.id;
-
-    // decrement following count in a tagList
-    await tagList.decrement("followerCount", {
-        where: {
-            "id": {
-                [Op.eq]: tagId,
-            },
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
         }
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+
+        const profileId = result.id;
+
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
+            },
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    await hashtagFollowers.destroy({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
-            },
-            "hashtagId": {
-                [Op.eq]: tagId,
-            },
-        },
-    })
-        .then((result) => {
-            if (result == 0) {
-                res.status(409).send({ error: true, res: "Invalid resource" });
+        const tagId = result.id;
+
+        // decrement following count in a tagList
+        await tagList.decrement("followerCount", {
+            where: {
+                "id": {
+                    [Op.eq]: tagId,
+                },
             }
-            else {
-                res.send({ res: "SUCCESS" });
-            }
+        });
+
+        await hashtagFollowers.destroy({
+            where: {
+                "profileId": {
+                    [Op.eq]: profileId,
+                },
+                "hashtagId": {
+                    [Op.eq]: tagId,
+                },
+            },
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                if (result == 0) {
+                    res.status(409).send({ error: true, res: "Invalid resource" });
+                }
+                else {
+                    res.send({ res: "SUCCESS" });
+                }
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -348,60 +308,49 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
 app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerator, checkActiveUUID, async (req, res) => {
     const tagUUID = req.params.tagUUID;
     const uuid = req.params.uuid;
-    let error = false;
 
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
+    try {
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const hashtagId = result.id;
 
-    const hashtagId = result.id;
-
-    result = await users.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: uuid,
+        result = await users.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: uuid,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const userId = result.id;
 
-    const userId = result.id;
-
-    await hashtagModerators.create({
-        "hashtagId": hashtagId,
-        "userId": userId,
-    })
-        .then((result) => {
-            res.send({ res: "SUCCESS" });
+        await hashtagModerators.create({
+            "hashtagId": hashtagId,
+            "userId": userId,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ res: "SUCCESS" });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -411,69 +360,58 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
 app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerator, checkActiveUUID, async (req, res) => {
     const tagUUID = req.params.tagUUID;
     const uuid = req.params.uuid;
-    let error = false;
 
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
+    try {
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const hashtagId = result.id;
 
-    const hashtagId = result.id;
-
-    result = await users.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: uuid,
+        result = await users.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: uuid,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const userId = result.id;
 
-    const userId = result.id;
-
-    await hashtagModerators.destroy({
-        "hashtagId": {
-            [Op.eq]: hashtagId
-        },
-        "userId": {
-            [Op.eq]: userId
-        },
-    })
-        .then((result) => {
-            if (result == 0) {
-                res.status(409).send({ error: true, res: "Invalid resource" });
-            }
-            else {
-                res.send({ res: "SUCCESS" });
-            }
+        await hashtagModerators.destroy({
+            "hashtagId": {
+                [Op.eq]: hashtagId
+            },
+            "userId": {
+                [Op.eq]: userId
+            },
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                if (result == 0) {
+                    res.status(409).send({ error: true, res: "Invalid resource" });
+                }
+                else {
+                    res.send({ res: "SUCCESS" });
+                }
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -483,45 +421,40 @@ app.get("/:tagUUID/moderators", async (req, res) => {
     const tagUUID = req.params.tagUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
+    try {
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const tagId = result.id;
 
-    const tagId = result.id;
-
-    await hashtagModerators.findAll({
-        where: {
-            "tagId": {
-                [Op.eq]: tagId,
+        await hashtagModerators.findAll({
+            where: {
+                "tagId": {
+                    [Op.eq]: tagId,
+                },
             },
-        },
-        include: "profiles",
-        limit: limit,
-        offset: offset,
-    })
-        .then((result) => {
-            res.send(getObj(result, "profiles"));
+            include: "profiles",
+            limit: limit,
+            offset: offset,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send(getObj(result, "profiles"));
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 

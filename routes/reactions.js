@@ -7,7 +7,7 @@ const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { authorizedAsModerator } = require('../middleware/rolecheck');
 const getObj = require('./functions/include');
 
-app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.json());
 
 /*
 * / - POST - create a reaction
@@ -93,60 +93,48 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
     const reactionUUID = req.params.reactionUUID;
     const uuid = req.params.uuid;
 
-    let error = false;
-
-    result = await users.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: uuid,
+    try {
+        result = await users.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: uuid,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const userId = result.id;
 
-    const userId = result.id;
-
-    result = await reactions.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: reactionUUID,
+        result = await reactions.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: reactionUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const reactionId = result.id;
 
-    const reactionId = result.id;
-
-    await reactionModerators.create({
-        "reactionId": reactionId,
-        "userId": userId,
-    })
-        .then((result) => {
-            res.send({ res: "SUCCESS" });
+        await reactionModerators.create({
+            "reactionId": reactionId,
+            "userId": userId,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ res: "SUCCESS" });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -157,71 +145,59 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     const reactionUUID = req.params.reactionUUID;
     const uuid = req.params.uuid;
 
-    let error = false;
-
-    result = await users.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: uuid,
+    try {
+        result = await users.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: uuid,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const userId = result.id;
 
-    const userId = result.id;
-
-    result = await reactions.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: reactionUUID,
+        result = await reactions.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: reactionUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const reactionId = result.id;
 
-    const reactionId = result.id;
-
-    await reactionModerators.destroy({
-        where: {
-            "userId": {
-                [Op.eq]: userId,
+        await reactionModerators.destroy({
+            where: {
+                "userId": {
+                    [Op.eq]: userId,
+                },
+                "reactionId": {
+                    [Op.eq]: reactionId,
+                },
             },
-            "reactionId": {
-                [Op.eq]: reactionId,
-            },
-        },
-    })
-        .then((result) => {
-            if (result == 0) {
-                res.status(409).send({ error: true, res: "Invalid resource" });
-            }
-            else {
-                res.send({ res: "SUCCESS" });
-            }
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                if (result == 0) {
+                    res.status(409).send({ error: true, res: "Invalid resource" });
+                }
+                else {
+                    res.send({ res: "SUCCESS" });
+                }
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /*
@@ -231,45 +207,40 @@ app.get("/:reactionUUID/moderators", async (req, res) => {
     const reactionUUID = req.params.reactionUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await reactions.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: reactionUUID,
+    try {
+        result = await reactions.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: reactionUUID,
+                },
             },
-        },
-        id: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(409).send({ error: true, res: err.message });
+            id: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const reactionId = result.id;
 
-    const reactionId = result.id;
-
-    await reactionModerators.findAll({
-        where: {
-            "reactionId": {
-                [Op.eq]: reactionId,
+        await reactionModerators.findAll({
+            where: {
+                "reactionId": {
+                    [Op.eq]: reactionId,
+                },
             },
-        },
-        include: "users",
-        limit: limit,
-        offset: offset,
-    })
-        .then((result) => {
-            res.send(getObj(result, "users"));
+            include: "users",
+            limit: limit,
+            offset: offset,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send(getObj(result, "users"));
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 module.exports = app;

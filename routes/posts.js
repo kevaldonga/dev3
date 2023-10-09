@@ -7,7 +7,7 @@ const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const getObj = require('./functions/include');
 const nullcheck = require('./validations/nullcheck');
 
-app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.json());
 /*
 / resource GET / POST - GET thi list, POST thi create
 / resource / uuid - GET, PUT, DELETE
@@ -116,45 +116,40 @@ app.get("/:postUUID/reactions", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const postId = result.id;
 
-    const postId = result.id;
-
-    await reactionOnPosts.findAll({
-        where: {
-            "postId": {
-                [Op.eq]: postId,
+        await reactionOnPosts.findAll({
+            where: {
+                "postId": {
+                    [Op.eq]: postId,
+                },
             },
-        },
-        limit: limit,
-        offset: offset,
-        include: "reactions",
-    })
-        .then((result) => {
-            res.send({ res: result });
+            limit: limit,
+            offset: offset,
+            include: "reactions",
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ res: result });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -164,44 +159,39 @@ app.get("/:postUUID/comments", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const postId = result.id;
 
-    const postId = result.id;
-
-    await comments.findAll({
-        where: {
-            "postId": {
-                [Op.eq]: postId,
+        await comments.findAll({
+            where: {
+                "postId": {
+                    [Op.eq]: postId,
+                },
             },
-        },
-        limit: limit,
-        offset: offset,
-    })
-        .then((result) => {
-            res.send({ res: result });
+            limit: limit,
+            offset: offset,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ res: result });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -211,66 +201,55 @@ app.get("/:postUUID/comments", async (req, res) => {
 app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const postUUID = req.params.postUUID;
     const reactionUUID = req.params.reactionUUID;
-    let error = false;
 
-    result = posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const postId = result.id;
-
-    result = reactions.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: reactionUUID,
-            },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
-        });
-
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const reactionId = result.id;
-
-    result = await reactionOnPosts.destroy({
-        where: {
-            "postId": {
-                [Op.eq]: postId,
-            },
-            "reactionId": {
-                [Op.eq]: reactionId,
-            },
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
         }
-    })
-        .then((result) => {
-            res.send({ res: "SUCCESS" });
-        })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
+
+        const postId = result.id;
+
+        result = reactions.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: reactionUUID,
+                },
+            },
+            attributes: ['id'],
         });
+
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
+
+        const reactionId = result.id;
+
+        result = await reactionOnPosts.destroy({
+            where: {
+                "postId": {
+                    [Op.eq]: postId,
+                },
+                "reactionId": {
+                    [Op.eq]: reactionId,
+                },
+            }
+        })
+            .then((result) => {
+                res.send({ res: "SUCCESS" });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -280,45 +259,40 @@ app.get("/:postUUID/tags", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return false;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const postId = result.id;
 
-    const postId = result.id;
-
-    await tagPostRelation.findAll({
-        where: {
-            "postId": {
-                [Op.eq]: postId,
+        await tagPostRelation.findAll({
+            where: {
+                "postId": {
+                    [Op.eq]: postId,
+                },
             },
-        },
-        limit: limit,
-        offset: offset,
-        include: "tags",
-    })
-        .then((result) => {
-            res.send(getObj(result, "tags"));
+            limit: limit,
+            offset: offset,
+            include: "tags",
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send(getObj(result, "tags"));
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -328,45 +302,40 @@ app.get("/:tagUUID/posts", async (req, res) => {
     const tagUUID = req.params.tagUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
+    try {
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return false;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const tagId = result.id;
 
-    const tagId = result.id;
-
-    await tagPostRelation.findAll({
-        where: {
-            "tagId": {
-                [Op.eq]: tagId,
+        await tagPostRelation.findAll({
+            where: {
+                "tagId": {
+                    [Op.eq]: tagId,
+                },
             },
-        },
-        limit: limit,
-        offset: offset,
-        include: "posts",
-    })
-        .then((result) => {
-            res.send(getObj(result, "posts"));
+            limit: limit,
+            offset: offset,
+            include: "posts",
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send(getObj(result, "posts"));
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -376,85 +345,68 @@ app.get("/:tagUUID/posts", async (req, res) => {
 app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const postUUID = req.params.postUUID;
     const tagUUID = req.params.tagUUID;
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return false;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const postId = result.id;
-
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
-            },
-        },
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
-        });
-
-    if (error) return false;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const tagId = result.id;
-
-    // increase tag used count
-    await tagList.decrement("count", {
-        where: {
-            "id": {
-                [Op.eq]: tagId,
-            },
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
         }
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+
+        const postId = result.id;
+
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
+            },
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    await tagPostRelation.destroy({
-        where: {
-            "postId": {
-                [Op.eq]: postId,
-            },
-            "tagId": {
-                [Op.eq]: tagId,
-            },
-        },
-    })
-        .then((result) => {
-            if (result == 0) {
-                res.status(409).send({ error: true, res: "Invalid resource" });
+        const tagId = result.id;
+
+        // increase tag used count
+        await tagList.decrement("count", {
+            where: {
+                "id": {
+                    [Op.eq]: tagId,
+                },
             }
-            else {
-                res.send({ res: "SUCCESS" });
-            }
+        });
+
+        await tagPostRelation.destroy({
+            where: {
+                "postId": {
+                    [Op.eq]: postId,
+                },
+                "tagId": {
+                    [Op.eq]: tagId,
+                },
+            },
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                if (result == 0) {
+                    res.status(409).send({ error: true, res: "Invalid resource" });
+                }
+                else {
+                    res.send({ res: "SUCCESS" });
+                }
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -464,74 +416,57 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
 app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const postUUID = req.params.postUUID;
     const tagUUID = req.params.tagUUID;
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return false;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const postId = result.id;
-
-    result = await tagList.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: tagUUID,
-            },
-        },
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
-        });
-
-    if (error) return false;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const tagId = result.id;
-
-    // increase tag used count
-    await tagList.increment("count", {
-        where: {
-            "id": {
-                [Op.eq]: tagId,
-            },
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
         }
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+
+        const postId = result.id;
+
+        result = await tagList.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: tagUUID,
+                },
+            },
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    await tagPostRelation.create({
-        "tagId": tagId,
-        "postId": postId,
-    })
-        .then((result) => {
-            res.send({ res: "SUCCESS" });
+        const tagId = result.id;
+
+        // increase tag used count
+        await tagList.increment("count", {
+            where: {
+                "id": {
+                    [Op.eq]: tagId,
+                },
+            }
+        });
+
+        await tagPostRelation.create({
+            "tagId": tagId,
+            "postId": postId,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ res: "SUCCESS" });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -539,41 +474,36 @@ app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedFor
 */
 app.get("/:postUUID/bookmarks/count", async (req, res) => {
     const postUUID = req.params.postUUID;
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return false;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const postId = result.id;
 
-    const postId = result.id;
-
-    await bookmarkPostRelation.findAll({
-        where: {
-            "postId": postId,
-        },
-        attributes: ['id'],
-    })
-        .then((result) => {
-            res.send({ length: result.length });
+        await bookmarkPostRelation.findAll({
+            where: {
+                "postId": postId,
+            },
+            attributes: ['id'],
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ length: result.length });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -583,43 +513,38 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
     const postUUID = req.params.postUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return false;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const postId = result.id;
 
-    const postId = result.id;
-
-    await bookmarkPostRelation.findAll({
-        where: {
-            "postId": postId,
-        },
-        include: "profiles",
-        offset: offset,
-        limit: limit,
-    })
-        .then((result) => {
-            res.send(getObj(result, "profiles"));
+        await bookmarkPostRelation.findAll({
+            where: {
+                "postId": postId,
+            },
+            include: "profiles",
+            offset: offset,
+            limit: limit,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send(getObj(result, "profiles"));
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -629,66 +554,55 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
 app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const postUUID = req.params.postUUID;
-    let error = false;
 
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
+    try {
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return false;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const profileId = result.id;
 
-    const profileId = result.id;
-
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return false;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const postId = result.id;
 
-    const postId = result.id;
-
-    await bookmarkPostRelation.findOne({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
+        await bookmarkPostRelation.findOne({
+            where: {
+                "profileId": {
+                    [Op.eq]: profileId,
+                },
+                "postId": {
+                    [Op.eq]: postId,
+                },
             },
-            "postId": {
-                [Op.eq]: postId,
-            },
-        },
-    })
-        .then((result) => {
-            res.send({ "isBookmarked": !result.isEmpty });
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ "isBookmarked": !result.isEmpty });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -698,60 +612,49 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
 app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const postUUID = req.params.postUUID;
     const profileUUID = req.params.profileUUID;
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = false;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const postId = result.id;
 
-    const postId = result.id;
-
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = false;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const profileId = result.id;
 
-    const profileId = result.id;
-
-    await pinnedPosts.create({
-        "profileId": profileId,
-        "postId": postId,
-    })
-        .then((result) => {
-            res.send({ res: "SUCCESS" });
+        await pinnedPosts.create({
+            "profileId": profileId,
+            "postId": postId,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ res: "SUCCESS" });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -761,71 +664,60 @@ app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, a
 app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const postUUID = req.params.postUUID;
     const profileUUID = req.params.profileUUID;
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = false;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const postId = result.id;
-
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
-            },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = false;
-            res.status(409).send({ error: true, res: err.message });
-        });
-
-    if (error) return;
-
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const profileId = result.id;
-
-    await pinnedPosts.destroy({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
-            },
-            "postId": {
-                [Op.eq]: postId,
-            },
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
         }
-    })
-        .then((result) => {
-            if (result == 0) {
-                res.status(409).send({ error: true, res: "Invalid resource" });
-            }
-            else {
-                res.send({ res: "SUCCESS" });
+
+        const postId = result.id;
+
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
+            },
+            attributes: ['id'],
+        });
+
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
+
+        const profileId = result.id;
+
+        await pinnedPosts.destroy({
+            where: {
+                "profileId": {
+                    [Op.eq]: profileId,
+                },
+                "postId": {
+                    [Op.eq]: postId,
+                },
             }
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                if (result == 0) {
+                    res.status(409).send({ error: true, res: "Invalid resource" });
+                }
+                else {
+                    res.send({ res: "SUCCESS" });
+                }
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -835,45 +727,40 @@ app.get("/:profileUUID/pinned/all", async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
+    try {
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(409).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const profileId = result.id;
 
-    const profileId = result.id;
-
-    await pinnedPosts.findAll({
-        where: {
-            "profileId": {
-                [Op.eq]: profileId,
+        await pinnedPosts.findAll({
+            where: {
+                "profileId": {
+                    [Op.eq]: profileId,
+                },
             },
-        },
-        include: "pinnedposts",
-        limit: limit,
-        offset: offset,
-    })
-        .then((result) => {
-            res.send(getObj(result, "pinnedposts"));
+            include: "pinnedposts",
+            limit: limit,
+            offset: offset,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send(getObj(result, "pinnedposts"));
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 

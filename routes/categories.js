@@ -6,7 +6,7 @@ const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck')
 const { nullCheck, defaultNullFields } = require("./validations/nullcheck");
 const getObj = require('./functions/include');
 
-app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.json());
 
 /*
 * /:postUUID - GET - get category(s) of a post by postId 
@@ -14,46 +14,41 @@ app.use(bodyParser.json({ limit: '1mb' }));
 */
 app.get("/:postUUID", async (req, res) => {
     const postUUID = req.params.postUUID;
-    let error = false;
 
-    result = await posts.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: postUUID,
+    try {
+        result = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                }
             }
+        });
+
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
         }
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
-        });
 
-    if (error) return;
+        const postId = result.id;
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
-
-    const postId = result.id;
-
-    await categorOfPost.findAll({
-        where: {
-            "postId": {
-                [Op.eq]: postId,
+        await categorOfPost.findAll({
+            where: {
+                "postId": {
+                    [Op.eq]: postId,
+                },
             },
-        },
-    })
-        .then((result) => {
-            if (result == 0) {
-                res.status(409).send({ error: true, res: "Invalid resource" });
-            }
-            else {
-                res.send({ res: result });
-            }
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                if (result == 0) {
+                    res.status(409).send({ error: true, res: "Invalid resource" });
+                }
+                else {
+                    res.send({ res: result });
+                }
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 

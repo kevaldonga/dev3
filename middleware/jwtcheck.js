@@ -19,8 +19,7 @@ const checkjwt = (req, res, next) => {
         }
 
         if (jwtToken === undefined) {
-            res.status(403).send({ error: true, res: 'Access denied' });
-            return;
+            return res.status(403).send({ error: true, res: 'Access denied' });
         }
         let user = jwt.verify(jwtToken, JWTPRIVATEKEY);
         req.userinfo = user;

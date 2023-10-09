@@ -5,7 +5,7 @@ const { Op } = require('sequelize');
 const { checkjwt, authorizedForProfileUUID, addProfileId } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 
-app.use(bodyParser.json({ limit: '1mb' }));
+app.use(bodyParser.json());
 
 /* 
 * /:profileUUID - POST - create a comment
@@ -14,38 +14,33 @@ app.use(bodyParser.json({ limit: '1mb' }));
 app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['comment', 'postId'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
     if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
-    let error = false;
 
     const profileUUID = req.params.profileUUID;
 
-    result = await profiles.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: profileUUID,
+    try {
+        result = await profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
+        req.body.profileId = result.id;
+
+        await comments.create(req.body)
+            .then((result) => {
+                res.send({ res: result });
+            });
     }
-
-    req.body.profileId = result.id;
-
-    await comments.create(req.body)
-        .then((result) => {
-            res.send({ res: result });
-        })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /* 
@@ -136,44 +131,39 @@ app.get("/:commentUUID/reactions", async (req, res) => {
     const commentUUID = req.params.commentUUID;
     const offset = req.query.page === undefined ? 0 : parseInt(req.query.page);
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
-    let error = false;
 
-    result = await comments.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: commentUUID,
+    try {
+        result = await comments.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: commentUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const commentId = result.id;
 
-    const commentId = result.id;
-
-    await reactionOnComments.findAll({
-        where: {
-            "commentId": {
-                [Op.eq]: commentId,
+        await reactionOnComments.findAll({
+            where: {
+                "commentId": {
+                    [Op.eq]: commentId,
+                },
             },
-        },
-        limit: limit,
-        offset: offset,
-    })
-        .then((result) => {
-            res.send({ res: result });
+            limit: limit,
+            offset: offset,
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                res.send({ res: result });
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 /*
@@ -183,51 +173,45 @@ app.get("/:commentUUID/reactions", async (req, res) => {
 app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) => {
     const commentUUID = req.params.commentUUID;
     const reactionUUID = req.params.reactionUUID;
-    let error = false;
 
-    result = await comments.findOne({
-        where: {
-            "uuid": {
-                [Op.eq]: commentUUID,
+    try {
+        result = await comments.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: commentUUID,
+                },
             },
-        },
-        attributes: ['id'],
-    })
-
-        .catch((err) => {
-            error = true;
-            res.status(403).send({ error: true, res: err.message });
+            attributes: ['id'],
         });
 
-    if (error) return;
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
 
-    if (result == null) {
-        return res.status(409).send({ error: true, res: "Invalid resource" });
-    }
+        const commentId = result.id;
 
-    const commentId = result.id;
-
-    await reactionOnComments.destroy({
-        where: {
-            "commentId": {
-                [Op.eq]: commentId,
+        await reactionOnComments.destroy({
+            where: {
+                "commentId": {
+                    [Op.eq]: commentId,
+                },
+                "uuid": {
+                    [Op.eq]: reactionUUID,
+                },
             },
-            "uuid": {
-                [Op.eq]: reactionUUID,
-            },
-        },
-    })
-        .then((result) => {
-            if (result == 0) {
-                res.status(409).send({ error: true, res: "Invalid resource" });
-            }
-            else {
-                res.send({ res: "SUCCESS" });
-            }
         })
-        .catch((err) => {
-            res.status(403).send({ error: true, res: err.message });
-        });
+            .then((result) => {
+                if (result == 0) {
+                    res.status(409).send({ error: true, res: "Invalid resource" });
+                }
+                else {
+                    res.send({ res: "SUCCESS" });
+                }
+            });
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
 });
 
 module.exports = app;
