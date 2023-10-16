@@ -8,10 +8,6 @@ const getObj = require('./functions/include');
 const nullcheck = require('./validations/nullcheck');
 
 app.use(bodyParser.json());
-/*
-/ resource GET / POST - GET thi list, POST thi create
-/ resource / uuid - GET, PUT, DELETE
-
 
 /* 
 * / - POST - create post
@@ -182,6 +178,7 @@ app.get("/:postUUID/comments", async (req, res) => {
                     [Op.eq]: postId,
                 },
             },
+            order: [["reactionCount", "DESC"]],
             limit: limit,
             offset: offset,
         })
@@ -491,14 +488,14 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
 
         const postId = result.id;
 
-        await bookmarkPostRelation.findAll({
+        await bookmarkPostRelation.count({
             where: {
                 "postId": postId,
             },
             attributes: ['id'],
         })
             .then((result) => {
-                res.send({ length: result.length });
+                res.send({ length: result });
             });
     }
     catch (err) {
@@ -808,6 +805,7 @@ app.get('/search', async (req, res) => {
                 },
             ]
         },
+        order: [["reactionCount", "DESC"]],
         offset: offset,
         limit: limit,
     })

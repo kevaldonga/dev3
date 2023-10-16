@@ -486,8 +486,12 @@ app.get('/search', async (req, res) => {
                         [Op.like]: `%${query}%`,
                     }
                 }
-            ]
+            ],
+            "isActive": {
+                [Op.eq]: 1,
+            }
         },
+        order: [["followerCount", "DESC"], ["count", "DESC"]],
         offset: offset,
         limit: limit,
     })
