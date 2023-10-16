@@ -9,6 +9,7 @@ const tagListRouter = require('./routes/taglist');
 const commentRouter = require('./routes/comments');
 const categoryRouter = require('./routes/categories');
 const bookmarkRouter = require('./routes/bookmarks');
+require('dotenv').config();
 const cors = require('cors');
 const PORT = 5000; //process.env.PORT || 5000;
 
