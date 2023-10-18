@@ -9,6 +9,8 @@ const tagListRouter = require('./routes/taglist');
 const commentRouter = require('./routes/comments');
 const categoryRouter = require('./routes/categories');
 const bookmarkRouter = require('./routes/bookmarks');
+const { createServer } = require('http');
+const Server = require('socket.io');
 require('dotenv').config();
 const cors = require('cors');
 const PORT = 5000; //process.env.PORT || 5000;
@@ -19,6 +21,10 @@ const corsOption = {
     origin: ['http://localhost:4000'],
     credentials: true,
 };
+
+const server = createServer(app);
+
+const io = Server(server, { cors: corsOption });
 
 app.use(cors(corsOption));
 
@@ -53,4 +59,9 @@ app.use("/categories", categoryRouter);
 // comments
 app.use("/comments", commentRouter);
 
-app.listen(PORT, () => { console.log(`server is running on ${PORT}`); });
+io.on('connection', (socket) => {
+    console.log(`${socket.id} connected`);
+    global.socket = socket;
+});
+
+server.listen(PORT, () => { console.log(`server is running on ${PORT}`); });

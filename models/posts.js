@@ -30,8 +30,10 @@ module.exports = (sequelize, DataTypes) => {
     profileId: { type: DataTypes.INTEGER, allowNull: false },
     title: { type: DataTypes.STRING, allowNull: false, validate: { len: [5, 100] } },
     description: { type: DataTypes.STRING, allowNull: true, validate: { len: [10, 255] } },
-    readDuration: { type: DataTypes.DATE, allowNull: false },
-    reactionCount: { type: DataTypes.INTEGER, defaultValue: 0 },
+    readDuration: { type: DataTypes.STRING, allowNull: false },
+    reactionLimit: { type: DataTypes.INTEGER, allowNull: false },
+    reactionCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    commentCount: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     uuid: { type: DataTypes.UUID, allowNull: false, defaultValue: DataTypes.UUIDV4 },
   }, {
     sequelize,

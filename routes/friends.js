@@ -98,35 +98,48 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
 
     try {
-        result = await profiles.findOne({
+        profileResult = await profiles.findOne({
             where: {
                 "uuid": {
                     [Op.eq]: profileUUID,
                 },
             },
-            attributes: ['id'],
         });
 
-        if (result == null) {
+        if (profileResult == null) {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
-        const profileId = result.id;
+        const profileId = profileResult.id;
 
-        result = await profiles.findOne({
+        followedProfileResult = await profiles.findOne({
             where: {
                 "uuid": {
                     [Op.eq]: beingFollowedProfileUUID,
                 },
             },
-            attributes: ['id'],
         });
 
-        if (result == null) {
+        if (followedProfileResult == null) {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
-        const beingFollowedProfileId = result.id;
+        const beingFollowedProfileId = followedProfileResult.id;
+
+        result = await friendsRelation.findOne({
+            where: {
+                "followerProfileId": {
+                    [Op.eq]: profileId,
+                },
+                "beingFollowedProfileId": {
+                    [Op.eq]: beingFollowedProfileId,
+                }
+            }
+        });
+
+        if (result != null) {
+            return res.status(403).send({ error: true, res: "user already followed" });
+        }
 
         // increment following count in a profile
         await profiles.increment("followings", {
@@ -136,8 +149,9 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
                 },
             }
         });
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+
+        if (global.socket != undefined) {
+            global.socket.emit(`profile:${profileUUID}:followings`, { "followings": profileResult.followings + 1, "operation": "INCR" });
         }
 
         // increment follower count in other profile
@@ -148,6 +162,10 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
                 },
             }
         });
+
+        if (global.socket != undefined) {
+            global.socket.emit(`profile:${beingFollowedProfileUUID}:followers`, { "followers": followedProfileResult.followers + 1, "operation": "INCR" });
+        }
 
         // update friendsRelation table
         await friendsRelation.create({
@@ -164,43 +182,56 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
 });
 
 /* 
-* /:profileUUID/follows/:beingFollowedProfileUUID - DELETE - user unfollows other user
+* /:profileUUID/unfollows/:beingFollowedProfileUUID - DELETE - user unfollows other user
 * @check check jwt signature, match profile uuid of url with payload
 */
-app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+app.delete("/:profileUUID/unfollows/:beingFollowedProfileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
 
     try {
-        result = await profiles.findOne({
+        profileResult = await profiles.findOne({
             where: {
                 "uuid": {
                     [Op.eq]: profileUUID,
                 },
             },
-            attributes: ['id'],
         });
 
-        if (result == null) {
+        if (profileResult == null) {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
-        const profileId = result.id;
+        const profileId = profileResult.id;
 
-        result = await profiles.findOne({
+        followedProfileResult = await profiles.findOne({
             where: {
                 "uuid": {
                     [Op.eq]: beingFollowedProfileUUID,
                 },
             },
-            attributes: ['id'],
         });
 
-        if (result == null) {
+        if (followedProfileResult == null) {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
-        const beingFollowedProfileId = result.id;
+        const beingFollowedProfileId = followedProfileResult.id;
+
+        result = await friendsRelation.findOne({
+            where: {
+                "followerProfileId": {
+                    [Op.eq]: profileId,
+                },
+                "beingFollowedProfileId": {
+                    [Op.eq]: beingFollowedProfileId,
+                }
+            }
+        });
+
+        if (result == null) {
+            return res.status(403).send({ error: true, res: "user already not followed" });
+        }
 
         // decrement following count in a profile
         await profiles.decrement("followings", {
@@ -211,14 +242,22 @@ app.delete("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authoriz
             }
         });
 
+        if (global.socket != undefined) {
+            global.socket.emit(`profile:${profileUUID}:followings`, { "followings": profileResult.followings - 1, "operation": "DECR", "id": result.id });
+        }
+
         // decrement follower count in other a profile
         await profiles.decrement("followers", {
             where: {
                 "id": {
-                    [Op.eq]: profileId,
+                    [Op.eq]: beingFollowedProfileId,
                 },
             }
         });
+
+        if (global.socket != undefined) {
+            global.socket.emit(`profile:${beingFollowedProfileId}:followers`, { "followers": followedProfileResult.followers - 1, "operation": "DECR", "id": result.id });
+        }
 
         // update friendsRelation table
         result = await friendsRelation.destroy({

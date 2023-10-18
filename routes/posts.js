@@ -14,7 +14,7 @@ app.use(bodyParser.json());
 * @check check jwt signature, get profileId from payload and add it req.body
 */
 app.post("/", checkjwt, addProfileId, async (req, res) => {
-    value = nullCheck(req.body, { nonNullableFields: ['profileId', 'title', 'media', 'readDuration'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
+    value = nullCheck(req.body, { nonNullableFields: ['profileId', 'title', 'media', 'readDuration', 'reactionLimit'], mustBeNullFields: [...defaultNullFields, 'reactionCount'] });
     if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
     await posts.create(req.body)
         .then((result) => {
@@ -192,7 +192,7 @@ app.get("/:postUUID/comments", async (req, res) => {
 });
 
 /* 
-* /:postUUID/reaction/:reactionId/profile/:profileUUID - DELETE - delete reaction on post
+* /:postUUID/reaction/:reactionUUID/profile/:profileUUID - DELETE - delete reaction on post
 * @check check jwt signature, match profileuuid of url with payload
 */
 app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
@@ -200,22 +200,21 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
     const reactionUUID = req.params.reactionUUID;
 
     try {
-        result = posts.findOne({
+        postResult = await posts.findOne({
             where: {
                 "uuid": {
                     [Op.eq]: postUUID,
                 },
             },
-            attributes: ['id'],
         });
 
-        if (result == null) {
+        if (postResult == null) {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
-        const postId = result.id;
+        const postId = postResult.id;
 
-        result = reactions.findOne({
+        result = await reactions.findOne({
             where: {
                 "uuid": {
                     [Op.eq]: reactionUUID,
@@ -239,10 +238,83 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
                     [Op.eq]: reactionId,
                 },
             }
-        })
-            .then((result) => {
-                res.send({ res: "SUCCESS" });
-            });
+        });
+
+        if (result == 0) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
+
+        await posts.decrement("reactionCount", {
+            where: {
+                "postId": {
+                    [Op.eq]: postId,
+                },
+            },
+        });
+
+        if (global.socket != null) {
+            global.socket.emit(`post:${postUUID}`, { "reactionCount": postResult.reactionCount - 1, "operation": "DECR" });
+        }
+    }
+    catch (err) {
+        res.status(403).send({ error: true, res: err.message, errorObject: err });
+    }
+});
+
+/* 
+* /:postUUID/reaction/:profileUUID - POST - add reaction on post
+* @check check jwt signature, match profileuuid of url with payload
+*/
+app.post("/:postUUID/reaction/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) => {
+    value = nullCheck(req.body, { nonNullableFields: ["reactionId"] });
+    if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
+
+    const postUUID = req.params.postUUID;
+
+    try {
+        postResult = await posts.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: postUUID,
+                },
+            },
+            attributes: ['id'],
+        });
+
+        if (postResult == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
+
+        const postId = postResult.id;
+
+        result = profiles.findOne({
+            where: {
+                "uuid": {
+                    [Op.eq]: profileUUID,
+                },
+            },
+            attributes: ['id'],
+        });
+
+        if (result == null) {
+            return res.status(409).send({ error: true, res: "Invalid resource" });
+        }
+
+        const profileId = result.id;
+
+        result = await reactionOnPosts.create({ "postId": postId, "profileId": profileId, "reactionId": req.body.reactionId });
+
+        await posts.increment("reactionCount", {
+            where: {
+                "postId": {
+                    [Op.eq]: postId,
+                },
+            },
+        });
+
+        if (global.socket != null) {
+            global.socket.emit(`post:${postUUID}`, { "reactionCount": postResult.reactionCount + 1, "operation": "INCR", "id": result.id });
+        }
     }
     catch (err) {
         res.status(403).send({ error: true, res: err.message, errorObject: err });
