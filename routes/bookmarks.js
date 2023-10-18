@@ -76,6 +76,7 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
                     [Op.eq]: profileId,
                 },
             },
+            order: ["createdAt", "DESC"],
             limit: limit,
             offset: offset,
             include: "posts",
