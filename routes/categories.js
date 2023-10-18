@@ -109,6 +109,7 @@ app.get("/:categoryUUID/all", async (req, res) => {
                 [Op.eq]: categoryUUID,
             },
         },
+        order: [["createdAt", "DESC"]],
         limit: limit,
         offset: offset,
         include: "posts",

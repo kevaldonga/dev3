@@ -819,6 +819,7 @@ app.get("/:profileUUID/pinned/all", async (req, res) => {
                     [Op.eq]: profileId,
                 },
             },
+            order: [["createdAt", "DESC"]],
             include: "pinnedposts",
             limit: limit,
             offset: offset,
