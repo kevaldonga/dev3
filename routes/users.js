@@ -221,7 +221,6 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
 app.post('/login', async (req, res) => {
     value = nullCheck(req.body, { nonNullableFields: ['email', 'password'] });
     if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
-    const role = req.body.role;
 
     try {
         result = await users.findOne({
@@ -236,6 +235,8 @@ app.post('/login', async (req, res) => {
         if (result == null) {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
+
+        const role = result.role;
 
         checked = await bcrypt.compare(req.body.password, result.password);
         if (checked) {

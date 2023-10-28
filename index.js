@@ -10,12 +10,22 @@ const commentRouter = require('./routes/comments');
 const categoryRouter = require('./routes/categories');
 const bookmarkRouter = require('./routes/bookmarks');
 const { createServer } = require('http');
+const serviceAccount = require('./global/firebase-service-account.json');
+const admin = require('firebase-admin');
 const Server = require('socket.io');
 require('dotenv').config();
 const cors = require('cors');
 const PORT = 5000; //process.env.PORT || 5000;
 
 const app = express();
+
+const firebaseApp = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+});
+
+const firebaseMessaging = firebaseApp.messaging();
+
+global.firebaseMessaging = firebaseMessaging;
 
 const corsOption = {
     origin: ['http://localhost:4000'],
