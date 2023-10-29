@@ -10,7 +10,7 @@ const commentRouter = require('./routes/comments');
 const categoryRouter = require('./routes/categories');
 const bookmarkRouter = require('./routes/bookmarks');
 const { createServer } = require('http');
-const serviceAccount = require('./global/firebase-service-account.json');
+const serviceAccount = require('./global/firebaseservice-account.json');
 const admin = require('firebase-admin');
 const Server = require('socket.io');
 require('dotenv').config();
@@ -28,7 +28,7 @@ const firebaseMessaging = firebaseApp.messaging();
 global.firebaseMessaging = firebaseMessaging;
 
 const corsOption = {
-    origin: ['http://localhost:4000'],
+    origin: ['https://f3946fca.devfe.pages.dev/', 'http://localhost:4000'],
     credentials: true,
 };
 
