@@ -3,3 +3,4 @@ node_modules/
 package-lock.json
 dump.rdb
 .env
+global/firebaseservice-account.json
