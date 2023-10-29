@@ -65,6 +65,7 @@ const checkActiveUUID = (req, res, next) => {
 
     if (isActive != 1) {
         res.status(403).send("Access denied");
+        next();
     }
 };
 

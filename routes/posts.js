@@ -388,15 +388,19 @@ app.get("/:tagUUID/posts", async (req, res) => {
 
         const tagId = result.id;
 
-        await tagPostRelation.findAll({
-            where: {
-                "tagId": {
-                    [Op.eq]: tagId,
+        await posts.findAll({
+            include: {
+                model: "tagList",
+                as: "tags",
+                where: {
+                    "id": {
+                        [Op.eq]: tagId,
+                    },
                 },
             },
+            order: [["likeCount", "DESC"]],
             limit: limit,
             offset: offset,
-            include: "posts",
         })
             .then((result) => {
                 res.send(getObj(result, "posts"));
