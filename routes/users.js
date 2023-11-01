@@ -231,15 +231,15 @@ app.post('/login', async (req, res) => {
         formData.append("response", req.body.cloudfareToken);
 
         const url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
-        const result = await fetch(url, {
+        result = await fetch(url, {
             body: formData,
             method: 'POST',
         });
 
-        const response = result.json();
+        const response = await result.json();
 
         if (!response.success) {
-            return res.status(403).send({ error: true, res: "Invalid Token" });
+            return res.status(403).send({ error: true, errorObject: response['error-codes'], res: "Invalid Token" });
         }
 
         result = await users.findOne({
