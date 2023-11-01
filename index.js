@@ -28,8 +28,8 @@ const firebaseMessaging = firebaseApp.messaging();
 global.firebaseMessaging = firebaseMessaging;
 
 const corsOption = {
-    origin: ['https://f3946fca.devfe.pages.dev/', 'http://localhost:4000'],
-    credentials: true,
+    origin: ['https://304283ae.devfe.pages.dev'],
+    credentials: true
 };
 
 const server = createServer(app);

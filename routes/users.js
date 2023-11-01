@@ -219,10 +219,29 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
 * /login - POST - login user
 */
 app.post('/login', async (req, res) => {
-    value = nullCheck(req.body, { nonNullableFields: ['email', 'password'] });
+    value = nullCheck(req.body, { nonNullableFields: ['email', 'password', 'cloudfareToken'] });
     if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
+    if (req.body.cloudfareToken == null) return res.status(403).send({ error: true, res: "captcha token is null" });
+
     try {
+        const SECRET_KEY = process.env.CAPTCHASECRETKEY;
+        const formData = FormData();
+        formData.append("secret", SECRET_KEY);
+        formData.append("response", req.body.cloudfareToken);
+
+        const url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+        const result = await fetch(url, {
+            body: formData,
+            method: 'POST',
+        });
+
+        const response = result.json();
+
+        if (!response.success) {
+            return res.status(403).send({ error: true, res: "Invalid Token" });
+        }
+
         result = await users.findOne({
             where: {
                 "email": {
