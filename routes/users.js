@@ -226,7 +226,7 @@ app.post('/login', async (req, res) => {
 
     try {
         const SECRET_KEY = process.env.CAPTCHASECRETKEY;
-        const formData = FormData();
+        const formData = new FormData();
         formData.append("secret", SECRET_KEY);
         formData.append("response", req.body.cloudfareToken);
 
