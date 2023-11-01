@@ -28,7 +28,7 @@ const firebaseMessaging = firebaseApp.messaging();
 global.firebaseMessaging = firebaseMessaging;
 
 const corsOption = {
-    origin: ['https://280e34ac.devfe.pages.dev'],
+    origin: ['https://38fe9d2e.devfe.pages.dev'],
     credentials: true
 };
 
