@@ -13,8 +13,9 @@ const { createServer } = require('http');
 const serviceAccount = require('./global/firebaseservice-account.json');
 const admin = require('firebase-admin');
 const Server = require('socket.io');
-require('dotenv').config();
 const cors = require('cors');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const PORT = 5000; //process.env.PORT || 5000;
 
 const app = express();
@@ -28,7 +29,7 @@ const firebaseMessaging = firebaseApp.messaging();
 global.firebaseMessaging = firebaseMessaging;
 
 const corsOption = {
-    origin: ['https://38fe9d2e.devfe.pages.dev'],
+    origin: ['https://38fe9d2e.devfe.pages.dev', 'http://localhost:3000'],
     credentials: true
 };
 

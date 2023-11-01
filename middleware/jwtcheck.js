@@ -2,8 +2,6 @@ const jwt = require('jsonwebtoken');
 const { fetchHTTPCookies } = require('./fetchhttpcookies');
 const { getUserState } = require('./uuidfileop');
 
-const JWTPRIVATEKEY = process.env.JWT;
-
 const checkjwt = (req, res, next) => {
     let jwtToken;
     try {
@@ -21,7 +19,7 @@ const checkjwt = (req, res, next) => {
         if (jwtToken === undefined) {
             return res.status(403).send({ error: true, res: 'Access denied' });
         }
-        let user = jwt.verify(jwtToken, JWTPRIVATEKEY);
+        let user = jwt.verify(jwtToken, process.env.JWT);
         req.userinfo = user;
         next();
     } catch {

@@ -12,9 +12,6 @@ const { roleCheck } = require('../middleware/rolecheck');
 const { v4: uuidv4, v1: uuidv1 } = require('uuid');
 const send = require('../utils/mailer');
 const generatePassword = require('../utils/generatePassword');
-const nullcheck = require('./validations/nullcheck');
-
-const JWTPRIVATEKEY = process.env.JWT;
 
 app.use(bodyParser.json());
 
@@ -225,9 +222,8 @@ app.post('/login', async (req, res) => {
     if (req.body.cloudfareToken == null) return res.status(403).send({ error: true, res: "captcha token is null" });
 
     try {
-        const SECRET_KEY = process.env.CAPTCHASECRETKEY;
         const formData = new FormData();
-        formData.append("secret", SECRET_KEY);
+        formData.append("secret", process.env.CAPTCHASECRETKEY);
         formData.append("response", req.body.cloudfareToken);
 
         const url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
@@ -263,12 +259,12 @@ app.post('/login', async (req, res) => {
             if (role !== 'user' && role !== undefined) {
                 userObj['role'] = role;
             }
-            let jt = jwt.sign(userObj, JWTPRIVATEKEY, { 'expiresIn': '30D' });
+            let jt = jwt.sign(userObj, process.env.JWT, { 'expiresIn': '30D' });
             updateUserState(result.uuid, 1);
             res.cookie('jwt', jt, { path: '/', httpOnly: true, secure: true });
             res.send(jt);
         } else {
-            res.status(403).send({ error: true, res: 'Invalid' });
+            res.status(403).send({ error: true, res: 'Email or password is Incorrect' });
         }
     }
     catch (err) {
@@ -349,7 +345,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
         };
         updateUserState(userdetails.uuid, 1);
         updateUserState(uuid, 0);
-        jwttoken = jwt.sign(userinfo, JWTPRIVATEKEY, { 'expiresIn': '30D' });
+        jwttoken = jwt.sign(userinfo, process.env.JWT, { 'expiresIn': '30D' });
         res.cookie("accessToken", jwttoken, { secure: true, httpOnly: true });
         res.send(jwttoken);
     }
