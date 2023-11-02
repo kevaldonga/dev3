@@ -133,7 +133,7 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -196,7 +196,7 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -239,7 +239,7 @@ app.get("/:reactionUUID/moderators", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 

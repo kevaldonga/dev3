@@ -166,7 +166,7 @@ app.get("/:tagUUID/followers", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -226,7 +226,7 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -297,7 +297,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -349,7 +349,7 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -410,7 +410,7 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -453,7 +453,7 @@ app.get("/:tagUUID/moderators", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 

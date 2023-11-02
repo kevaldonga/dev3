@@ -147,7 +147,7 @@ app.get("/:profileUUID/tags", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -208,7 +208,7 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -280,7 +280,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 

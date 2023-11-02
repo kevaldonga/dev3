@@ -144,7 +144,7 @@ app.get("/:postUUID/reactions", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -187,7 +187,7 @@ app.get("/:postUUID/comments", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -257,7 +257,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
         }
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -317,7 +317,7 @@ app.post("/:postUUID/reaction/:profileUUID", checkjwt, authorizedForProfileUUID,
         }
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -360,7 +360,7 @@ app.get("/:postUUID/tags", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -407,7 +407,7 @@ app.get("/:tagUUID/posts", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -478,7 +478,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -538,7 +538,7 @@ app.post("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedFor
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -575,7 +575,7 @@ app.get("/:postUUID/bookmarks/count", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -616,7 +616,7 @@ app.get("/:postUUID/bookmarks", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -674,7 +674,7 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -726,7 +726,7 @@ app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, a
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -789,7 +789,7 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -833,7 +833,7 @@ app.get("/:profileUUID/pinned/all", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 

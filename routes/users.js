@@ -84,7 +84,7 @@ app.put("/verify", async (req, res) => {
         }
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 
 });
@@ -128,7 +128,7 @@ app.get("/verify/:token", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -268,7 +268,7 @@ app.post('/login', async (req, res) => {
         }
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -350,7 +350,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
         res.send(jwttoken);
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -404,7 +404,7 @@ app.put("/forgotPassword/:token", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -461,7 +461,7 @@ app.delete('/deleteAccount/:token', checkjwt, async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -505,7 +505,7 @@ app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, asyn
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -549,7 +549,7 @@ app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, asy
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 

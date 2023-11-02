@@ -65,7 +65,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
         res.send({ res: result });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -227,7 +227,7 @@ app.get("/:commentUUID/reactions", async (req, res) => {
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
@@ -275,7 +275,7 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
             });
     }
     catch (err) {
-        res.status(403).send({ error: true, res: err.message, errorObject: err });
+        res.status(403).send({ error: true, res: err.message, errorObject: JSON.stringify(err) });
     }
 });
 
