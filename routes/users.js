@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { checkjwt, authorized, checkActiveUUID } = require('../middleware/jwtcheck');
 const { validatePassword } = require('./validations/user');
-const { updateUserState } = require('../middleware/uuidfileop');
+const { updateUserState, getUserState, updateUUID } = require('../redis/profileOp');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { roleCheck } = require('../middleware/rolecheck');
 const { v4: uuidv4, v1: uuidv1 } = require('uuid');
@@ -21,6 +21,12 @@ app.use(bodyParser.json());
 */
 app.get('/:uuid', checkjwt, async (req, res) => {
     const uuid = req.params.uuid;
+    result = getUserState(uuid);
+
+    if (result != 0) {
+        return res.send({ res: result });
+    }
+
     await users.findOne({
         where: {
             "uuid": {
@@ -33,6 +39,7 @@ app.get('/:uuid', checkjwt, async (req, res) => {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
+                updateUserState(uuid, result);
                 res.send({ res: result });
             }
         })
@@ -111,10 +118,12 @@ app.get("/verify/:token", async (req, res) => {
         if (result.isActive == 1) {
             return res.status(409).send({ res: "email is already verified" });
         }
+        const uuid = uuidv4();
+        const token = uuidv1();
 
         await users.update({
-            "token": uuidv1(),
-            "uuid": uuidv4(),
+            "token": token,
+            "uuid": uuid,
             "isActive": 1,
         }, {
             where: {
@@ -124,6 +133,8 @@ app.get("/verify/:token", async (req, res) => {
             },
         })
             .then((result) => {
+                updateUUID(result.uuid, uuid);
+                updateUserState(uuid, {...result, 'uuid': uuid, 'isActive': 1, 'token': token});    
                 res.send({ res: "SUCCESS" });
             });
     }
@@ -171,6 +182,7 @@ app.put("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res)
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
+                updateUserState(moderatorUUID, { 'role': 'moderator' });
                 res.send({ res: "SUCCESS" });
             }
         })
@@ -203,6 +215,7 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
+                updateUserState(moderatorUUID, { 'role': 'user' });
                 res.send({ res: "SUCCESS" });
             }
         })
@@ -260,7 +273,7 @@ app.post('/login', async (req, res) => {
                 userObj['role'] = role;
             }
             let jt = jwt.sign(userObj, process.env.JWT, { 'expiresIn': '30D' });
-            updateUserState(result.uuid, 1);
+            updateUserState(result.uuid, { 'isActive': 1 });
             res.cookie('jwt', jt, { path: '/', httpOnly: true, secure: true });
             res.send(jt);
         } else {
@@ -293,6 +306,7 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
+                updateUserState(req.params.uuid, result);
                 res.send({ res: "SUCCESS" });
             }
         })
@@ -329,7 +343,8 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
-        const uuid = result.uuid;
+        const oldUUID = result.uuid;
+        const newUUID = uuidv4();
 
         checked = await bcrypt.compare(oldPassword, result.password);
 
@@ -337,14 +352,15 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
             return res.status(403).send({ error: true, res: "Invalid password!!" });
         }
 
-        userdetails = await users.updatePassword(newPassword, uuid);
+        userdetails = await users.updatePassword(newPassword, newUUID);
         userinfo = {
-            'auth': userdetails.uuid,
+            'auth': newUUID,
             'auth2': req.userinfo.auth2,
             '_sa': req.userinfo._sa,
         };
-        updateUserState(userdetails.uuid, 1);
-        updateUserState(uuid, 0);
+
+        updateUUID(oldUUID, newUUID);
+        updateUserState(newUUID, { 'uuid': newUUID });
         jwttoken = jwt.sign(userinfo, process.env.JWT, { 'expiresIn': '30D' });
         res.cookie("accessToken", jwttoken, { secure: true, httpOnly: true });
         res.send(jwttoken);
@@ -439,7 +455,7 @@ app.delete('/deleteAccount/:token', checkjwt, async (req, res) => {
             },
         });
 
-        updateUserState(uuid, -1);
+        updateUserState(uuid, { 'isActive': -1 });
 
         await users.update({
             "isActive": -1,
@@ -455,7 +471,7 @@ app.delete('/deleteAccount/:token', checkjwt, async (req, res) => {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {
-                    updateUserState(uuid, 0);
+                    updateUserState(uuid, { 'isActive': -1 });
                     res.send({ res: "SUCCESS" });
                 }
             });
@@ -475,17 +491,21 @@ app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, asyn
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        result = await users.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: uuid,
-                },
-            },
-            attributes: ['id'],
-        });
+        let result = getUserState(uuid, ["id"]);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await users.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: uuid,
+                    },
+                },
+                attributes: ['id'],
+            });
+
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
         }
 
         const userId = result.id;
@@ -519,17 +539,21 @@ app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, asy
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        result = await users.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: uuid,
-                },
-            },
-            attributes: ['id'],
-        });
+        let result = getUserState(uuid, ["id"]);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await users.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: uuid,
+                    },
+                },
+                attributes: ['id'],
+            });
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
         }
 
         const userId = result.id;

@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { fetchHTTPCookies } = require('./fetchhttpcookies');
-const { getUserState } = require('./uuidfileop');
+const { getUserState } = require('./../redis/profileOp');
 
 const checkjwt = (req, res, next) => {
     let jwtToken;
