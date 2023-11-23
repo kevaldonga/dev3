@@ -59,12 +59,15 @@ const addProfileId = (req, res, next) => {
 const checkActiveUUID = (req, res, next) => {
     const myuuid = req.userinfo.auth;
 
-    const isActive = getUserState(myuuid);
+    getUserState(myuuid).then((result) => {
+        if (result.isActive != 1) {
+            res.status(403).send("Access denied");
+        }
+        else {
+            next();
+        }
+    });
 
-    if (isActive != 1) {
-        res.status(403).send("Access denied");
-        next();
-    }
 };
 
 module.exports = {

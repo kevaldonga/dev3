@@ -21,8 +21,7 @@ app.use(bodyParser.json());
 */
 app.get('/:uuid', checkjwt, async (req, res) => {
     const uuid = req.params.uuid;
-    result = getUserState(uuid);
-
+    result = await getUserState(uuid);
     if (result != 0) {
         return res.send({ res: result });
     }
@@ -34,12 +33,12 @@ app.get('/:uuid', checkjwt, async (req, res) => {
             },
         },
     })
-        .then((result) => {
+        .then(async (result) => {
             if (result == 0) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                updateUserState(uuid, result);
+                await updateUserState(uuid, result);
                 res.send({ res: result });
             }
         })
@@ -118,12 +117,12 @@ app.get("/verify/:token", async (req, res) => {
         if (result.isActive == 1) {
             return res.status(409).send({ res: "email is already verified" });
         }
-        const uuid = uuidv4();
-        const token = uuidv1();
+        const newuuid = uuidv4();
+        const newtoken = uuidv1();
 
         await users.update({
-            "token": token,
-            "uuid": uuid,
+            "token": newtoken,
+            "uuid": newuuid,
             "isActive": 1,
         }, {
             where: {
@@ -132,9 +131,9 @@ app.get("/verify/:token", async (req, res) => {
                 },
             },
         })
-            .then((result) => {
-                updateUUID(result.uuid, uuid);
-                updateUserState(uuid, {...result, 'uuid': uuid, 'isActive': 1, 'token': token});    
+            .then(async (result) => {
+                updateUUID(result.uuid, newuuid);
+                await updateUserState(newuuid, { ...result, 'uuid': newuuid, 'isActive': 1, 'token': newtoken });
                 res.send({ res: "SUCCESS" });
             });
     }
@@ -177,12 +176,12 @@ app.put("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res)
             },
         },
     })
-        .then((result) => {
+        .then(async (result) => {
             if (result == 0) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                updateUserState(moderatorUUID, { 'role': 'moderator' });
+                await updateUserState(moderatorUUID, { 'role': 'moderator' });
                 res.send({ res: "SUCCESS" });
             }
         })
@@ -210,12 +209,12 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
             },
         },
     })
-        .then((result) => {
+        .then(async (result) => {
             if (result == 0) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                updateUserState(moderatorUUID, { 'role': 'user' });
+                await updateUserState(moderatorUUID, { 'role': 'user' });
                 res.send({ res: "SUCCESS" });
             }
         })
@@ -273,7 +272,7 @@ app.post('/login', async (req, res) => {
                 userObj['role'] = role;
             }
             let jt = jwt.sign(userObj, process.env.JWT, { 'expiresIn': '30D' });
-            updateUserState(result.uuid, { 'isActive': 1 });
+            await updateUserState(result.uuid, { 'isActive': 1 });
             res.cookie('jwt', jt, { path: '/', httpOnly: true, secure: true });
             res.send(jt);
         } else {
@@ -301,12 +300,12 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
             },
         },
     })
-        .then((result) => {
+        .then(async (result) => {
             if (result == 0) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
-                updateUserState(req.params.uuid, result);
+                await updateUserState(req.params.uuid, result);
                 res.send({ res: "SUCCESS" });
             }
         })
@@ -360,7 +359,7 @@ app.put('/:uuid/changePassword', checkjwt, authorized, checkActiveUUID, async (r
         };
 
         updateUUID(oldUUID, newUUID);
-        updateUserState(newUUID, { 'uuid': newUUID });
+        await updateUserState(newUUID, { 'uuid': newUUID });
         jwttoken = jwt.sign(userinfo, process.env.JWT, { 'expiresIn': '30D' });
         res.cookie("accessToken", jwttoken, { secure: true, httpOnly: true });
         res.send(jwttoken);
@@ -455,7 +454,7 @@ app.delete('/deleteAccount/:token', checkjwt, async (req, res) => {
             },
         });
 
-        updateUserState(uuid, { 'isActive': -1 });
+        await updateUserState(uuid, { 'isActive': -1 });
 
         await users.update({
             "isActive": -1,
@@ -466,12 +465,12 @@ app.delete('/deleteAccount/:token', checkjwt, async (req, res) => {
                 },
             },
         })
-            .then((result) => {
+            .then(async (result) => {
                 if (result == 0) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {
-                    updateUserState(uuid, { 'isActive': -1 });
+                    await updateUserState(uuid, { 'isActive': -1 });
                     res.send({ res: "SUCCESS" });
                 }
             });
@@ -491,7 +490,7 @@ app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, asyn
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        let result = getUserState(uuid, ["id"]);
+        let result = await getUserState(uuid);
 
         if (result == 0) {
             result = await users.findOne({
@@ -500,12 +499,13 @@ app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, asyn
                         [Op.eq]: uuid,
                     },
                 },
-                attributes: ['id'],
             });
 
             if (result == null) {
                 return res.status(409).send({ error: true, res: "Invalid resource" });
             }
+
+            await updateUserState(uuid, result);
         }
 
         const userId = result.id;
@@ -539,7 +539,7 @@ app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, asy
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        let result = getUserState(uuid, ["id"]);
+        let result = await getUserState(uuid);
 
         if (result == 0) {
             result = await users.findOne({
@@ -548,12 +548,12 @@ app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, asy
                         [Op.eq]: uuid,
                     },
                 },
-                attributes: ['id'],
             });
             if (result == null) {
                 return res.status(409).send({ error: true, res: "Invalid resource" });
             }
 
+            await updateUserState(uuid, result);
         }
 
         const userId = result.id;

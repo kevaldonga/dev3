@@ -5,6 +5,7 @@ const { Op } = require('sequelize');
 const { checkjwt, addProfileId, authorizedForProfileUUID } = require('../middleware/jwtcheck');
 const { nullCheck } = require('./validations/nullcheck');
 const getObj = require('./functions/include');
+const { updateUserState, getUserState } = require('./../redis/profileOp');
 
 app.use(bodyParser.json());
 
@@ -55,17 +56,22 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        result = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
-                },
-            },
-            attributes: ['id'],
-        });
+        let result = await getUserState(profileUUID);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
+                },
+            });
+
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(profileUUID, result);
         }
 
         const profileId = result.id;

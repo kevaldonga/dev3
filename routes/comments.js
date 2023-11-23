@@ -4,6 +4,7 @@ const { comments, reactionOnComments, profiles, posts } = require('../models');
 const { Op } = require('sequelize');
 const { checkjwt, authorizedForProfileUUID, addProfileId } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
+const { getUserState, updateUserState } = require('../redis/profileOp');
 
 app.use(bodyParser.json());
 
@@ -19,15 +20,19 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
     const postUUID = req.body.postUUID;
 
     try {
-        result = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
-                },
-            },
-            attributes: ['id'],
-        });
+        let result = await getUserState(profileUUID);
 
+        if (result == 0) {
+            result = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
+                },
+            });
+
+            await updateUserState(profileUUID, result);
+        }
         if (result == null) {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
@@ -74,6 +79,7 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
 */
 app.get("/:commentUUID", async (req, res) => {
     const commentUUID = req.params.commentUUID;
+
     await comments.findOne({
         where: {
             "uuid": {

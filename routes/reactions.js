@@ -6,6 +6,7 @@ const { checkjwt, checkActiveUUID } = require('../middleware/jwtcheck');
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const { authorizedAsModerator } = require('../middleware/rolecheck');
 const getObj = require('./functions/include');
+const { getUserState, updateUserState } = require('../redis/profileOp');
 
 app.use(bodyParser.json());
 
@@ -94,19 +95,23 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
     const uuid = req.params.uuid;
 
     try {
-        result = await users.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: uuid,
+        let result = await getUserState(uuid);
+
+        if (result == 0) {
+            result = await users.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: uuid,
+                    },
                 },
-            },
-            attributes: ['id'],
-        });
+            });
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(uuid, result);
         }
-
         const userId = result.id;
 
         result = await reactions.findOne({
@@ -146,17 +151,22 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     const uuid = req.params.uuid;
 
     try {
-        result = await users.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: uuid,
-                },
-            },
-            attributes: ['id'],
-        });
+        let result = await getUserState(uuid);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await users.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: uuid,
+                    },
+                },
+            });
+
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(uuid, result);
         }
 
         const userId = result.id;

@@ -4,6 +4,7 @@ const { friendsRelation, profiles } = require('../models');
 const { Op } = require('sequelize');
 const getObj = require('./functions/include');
 const { checkjwt, authorizedForProfileUUID } = require('../middleware/jwtcheck');
+const { getUserState, updateUserState } = require('../redis/profileOp');
 
 app.use(bodyParser.json());
 
@@ -16,19 +17,23 @@ app.get("/:profileUUID/followers", async (req, res) => {
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        result = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
+        let result = await getUserState(profileUUID);
+
+        if (result == 0) {
+            result = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
                 },
-            },
-            attributes: ['id'],
-        });
+            });
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(profileUUID, result);
         }
-
         const profileId = result.id;
 
         await friendsRelation.findAll({
@@ -57,15 +62,20 @@ app.get("/:profileUUID/followings", async (req, res) => {
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        result = await profiles.findOne({
-            where: {
-                uuid: profileUUID
-            },
-            attributes: ['id']
-        });
+        let result = await getUserState(profileUUID);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await profiles.findOne({
+                where: {
+                    uuid: profileUUID
+                },
+            });
+
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(profileUUID, result);
         }
 
         const profileId = result.id;
@@ -98,30 +108,42 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
 
     try {
-        profileResult = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
-                },
-            },
-        });
+        let profileResult = await getUserState(profileUUID);
 
-        if (profileResult == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            profileResult = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
+                },
+            });
+
+            if (profileResult == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(profileUUID, result);
         }
 
         const profileId = profileResult.id;
 
-        followedProfileResult = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: beingFollowedProfileUUID,
-                },
-            },
-        });
+        let followedProfileResult = await getUserState(beingFollowedProfileUUID);
 
-        if (followedProfileResult == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            followedProfileResult = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: beingFollowedProfileUUID,
+                    },
+                },
+            });
+
+            if (followedProfileResult == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(beingFollowedProfileUUID, followedProfileResult);
         }
 
         const beingFollowedProfileId = followedProfileResult.id;
@@ -190,30 +212,41 @@ app.delete("/:profileUUID/unfollows/:beingFollowedProfileUUID", checkjwt, author
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
 
     try {
-        profileResult = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
-                },
-            },
-        });
+        let profileResult = await getUserState(profileUUID);
 
-        if (profileResult == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            profileResult = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
+                },
+            });
+
+            if (profileResult == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+            await updateUserState(profileUUID, profileResult);
         }
 
         const profileId = profileResult.id;
 
-        followedProfileResult = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: beingFollowedProfileUUID,
-                },
-            },
-        });
+        let followedProfileResult = await getUserState(beingFollowedProfileUUID);
 
-        if (followedProfileResult == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            followedProfileResult = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: beingFollowedProfileUUID,
+                    },
+                },
+            });
+
+            if (followedProfileResult == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(beingFollowedProfileUUID, followedProfileResult);
         }
 
         const beingFollowedProfileId = followedProfileResult.id;

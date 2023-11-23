@@ -6,6 +6,7 @@ const { checkjwt, addProfileId, authorizedForProfileUUID } = require('../middlew
 const { nullCheck, defaultNullFields } = require('./validations/nullcheck');
 const getObj = require('./functions/include');
 const nullcheck = require('./validations/nullcheck');
+const { getUserState, updateUserState } = require('../redis/profileOp');
 
 app.use(bodyParser.json());
 
@@ -287,17 +288,22 @@ app.post("/:postUUID/reaction/:profileUUID", checkjwt, authorizedForProfileUUID,
 
         const postId = postResult.id;
 
-        result = profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
-                },
-            },
-            attributes: ['id'],
-        });
+        let result = await getUserState(profileUUID);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
+                },
+            });
+
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(profileUUID, result);
         }
 
         const profileId = result.id;
@@ -629,17 +635,22 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
     const postUUID = req.params.postUUID;
 
     try {
-        result = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
-                },
-            },
-            attributes: ['id'],
-        });
+        let result = await getUserState(profileUUID);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
+                },
+            });
+
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(profileUUID, result);
         }
 
         const profileId = result.id;
@@ -702,17 +713,22 @@ app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, a
 
         const postId = result.id;
 
-        result = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
-                },
-            },
-            attributes: ['id'],
-        });
+        result = await getUserState(profileUUID);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
+                },
+            });
+
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(profileUUID, result);
         }
 
         const profileId = result.id;
@@ -754,17 +770,22 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
 
         const postId = result.id;
 
-        result = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
-                },
-            },
-            attributes: ['id'],
-        });
+        result = await getUserState(profileUUID);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
+                },
+            });
+
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(profileUUID, result);
         }
 
         const profileId = result.id;
@@ -802,17 +823,22 @@ app.get("/:profileUUID/pinned/all", async (req, res) => {
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        result = await profiles.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: profileUUID,
-                },
-            },
-            attributes: ['id'],
-        });
+        let result = await getUserState(profileUUID);
 
-        if (result == null) {
-            return res.status(409).send({ error: true, res: "Invalid resource" });
+        if (result == 0) {
+            result = await profiles.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: profileUUID,
+                    },
+                },
+            });
+
+            if (result == null) {
+                return res.status(409).send({ error: true, res: "Invalid resource" });
+            }
+
+            await updateUserState(profileUUID, result);
         }
 
         const profileId = result.id;

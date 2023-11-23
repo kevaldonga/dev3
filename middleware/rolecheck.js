@@ -1,5 +1,6 @@
 const { users } = require('../models');
 const { Op } = require('sequelize');
+const { getUserState, updateUserState } = require('../redis/profileOp');
 
 const authorizedAsAdmin = (req, res, next) => {
     if (req.userinfo.role === 'admin') {
@@ -21,14 +22,23 @@ const authorizedAsModerator = (req, res, next) => {
 
 roleCheck = async (uuid, role) => {
     try {
-        result = await users.findOne({
-            where: {
-                "uuid": {
-                    [Op.eq]: uuid,
+        let result = await getUserState(uuid);
+
+        if (result == 0) {
+            result = await users.findOne({
+                where: {
+                    "uuid": {
+                        [Op.eq]: uuid,
+                    },
                 },
-            },
-            attributes: ['role'],
-        });
+            });
+
+            if (result == null) {
+                return "Invalid Resource";
+            }
+
+            await updateUserState(uuid, result);
+        }
     }
     catch (err) {
         return err.message;
