@@ -38,7 +38,7 @@ app.get("/:postUUID", async (req, res) => {
             },
         })
             .then((result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {
@@ -66,7 +66,7 @@ app.delete("/:categoryUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {

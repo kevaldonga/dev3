@@ -16,7 +16,7 @@ app.use(bodyParser.json());
 app.get('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) => {
     const profileUUID = req.params.profileUUID;
 
-    let result = await getUserState(profileUUID);
+    let result = await getUserState(profileUUID, 'id');
 
     if (result != 0) {
         return res.send({ res: result });
@@ -76,7 +76,7 @@ app.put('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res) =>
         },
     })
         .then(async (result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -104,7 +104,7 @@ app.delete('/:profileUUID', checkjwt, authorizedForProfileUUID, async (req, res)
         },
     })
         .then((result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -126,9 +126,9 @@ app.get("/:profileUUID/tags", async (req, res) => {
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -189,9 +189,9 @@ app.post("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, asyn
 
         const tagId = result.id;
 
-        result = await getUserState(profileUUID);
+        result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -255,9 +255,9 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
 
         const tagId = result.id;
 
-        result = await getUserState(profileUUID);
+        result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -295,7 +295,7 @@ app.delete("/:profileUUID/tags/:tagUUID", checkjwt, authorizedForProfileUUID, as
             },
         })
             .then((result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {

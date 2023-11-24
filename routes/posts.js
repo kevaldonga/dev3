@@ -68,7 +68,7 @@ app.put("/:postUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -94,7 +94,7 @@ app.delete("/:postUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -241,7 +241,7 @@ app.delete("/:postUUID/reaction/:reactionUUID/profile/:profileUUID", checkjwt, a
             }
         });
 
-        if (result == 0) {
+        if (result == undefined) {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
@@ -271,6 +271,7 @@ app.post("/:postUUID/reaction/:profileUUID", checkjwt, authorizedForProfileUUID,
     if (typeof (value) == 'string') return res.status(400).send({ error: true, res: value });
 
     const postUUID = req.params.postUUID;
+    const profileUUID = req.params.profileUUID;
 
     try {
         postResult = await posts.findOne({
@@ -288,9 +289,9 @@ app.post("/:postUUID/reaction/:profileUUID", checkjwt, authorizedForProfileUUID,
 
         const postId = postResult.id;
 
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -475,7 +476,7 @@ app.delete("/:postUUID/tag/:tagUUID/profile/:profileUUID", checkjwt, authorizedF
             },
         })
             .then((result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {
@@ -635,9 +636,9 @@ app.get("/:profileUUID/isBookmarked/:postUUID", checkjwt, authorizedForProfileUU
     const postUUID = req.params.postUUID;
 
     try {
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -713,9 +714,9 @@ app.post("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID, a
 
         const postId = result.id;
 
-        result = await getUserState(profileUUID);
+        result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -770,9 +771,9 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
 
         const postId = result.id;
 
-        result = await getUserState(profileUUID);
+        result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -801,7 +802,7 @@ app.delete("/:postUUID/pinned/:profileUUID", checkjwt, authorizedForProfileUUID,
             }
         })
             .then((result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {
@@ -823,9 +824,9 @@ app.get("/:profileUUID/pinned/all", async (req, res) => {
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {

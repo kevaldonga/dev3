@@ -56,9 +56,9 @@ app.get("/posts/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, r
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -110,7 +110,7 @@ app.delete("/:bookmarkUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {

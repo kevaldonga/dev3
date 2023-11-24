@@ -22,9 +22,9 @@ const authorizedAsModerator = (req, res, next) => {
 
 roleCheck = async (uuid, role) => {
     try {
-        let result = await getUserState(uuid);
+        let result = await getUserState(uuid, 'role');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await users.findOne({
                 where: {
                     "uuid": {

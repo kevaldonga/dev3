@@ -20,9 +20,9 @@ app.post("/:profileUUID", checkjwt, authorizedForProfileUUID, async (req, res) =
     const postUUID = req.body.postUUID;
 
     try {
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -117,7 +117,7 @@ app.put("/:commentUUID", checkjwt, async (req, res) => {
         },
     })
         .then((result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -183,7 +183,7 @@ app.delete("/:commentUUID", checkjwt, async (req, res) => {
             },
         });
 
-        if (result == 0) {
+        if (result == undefined) {
             res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
@@ -272,7 +272,7 @@ app.delete("/:commentUUID/reaction/:reactionUUID", checkjwt, async (req, res) =>
             },
         })
             .then((result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {

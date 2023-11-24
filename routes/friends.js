@@ -17,9 +17,9 @@ app.get("/:profileUUID/followers", async (req, res) => {
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -62,9 +62,9 @@ app.get("/:profileUUID/followings", async (req, res) => {
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     uuid: profileUUID
@@ -108,9 +108,9 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
 
     try {
-        let profileResult = await getUserState(profileUUID);
+        let profileResult = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             profileResult = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -128,9 +128,9 @@ app.post("/:profileUUID/follows/:beingFollowedProfileUUID", checkjwt, authorized
 
         const profileId = profileResult.id;
 
-        let followedProfileResult = await getUserState(beingFollowedProfileUUID);
+        let followedProfileResult = await getUserState(beingFollowedProfileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             followedProfileResult = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -212,9 +212,9 @@ app.delete("/:profileUUID/unfollows/:beingFollowedProfileUUID", checkjwt, author
     const beingFollowedProfileUUID = req.params.beingFollowedProfileUUID;
 
     try {
-        let profileResult = await getUserState(profileUUID);
+        let profileResult = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             profileResult = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -231,9 +231,9 @@ app.delete("/:profileUUID/unfollows/:beingFollowedProfileUUID", checkjwt, author
 
         const profileId = profileResult.id;
 
-        let followedProfileResult = await getUserState(beingFollowedProfileUUID);
+        let followedProfileResult = await getUserState(beingFollowedProfileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             followedProfileResult = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -304,7 +304,7 @@ app.delete("/:profileUUID/unfollows/:beingFollowedProfileUUID", checkjwt, author
             },
         })
             .then((result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {

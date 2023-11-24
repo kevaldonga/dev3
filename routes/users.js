@@ -21,7 +21,7 @@ app.use(bodyParser.json());
 */
 app.get('/:uuid', checkjwt, async (req, res) => {
     const uuid = req.params.uuid;
-    result = await getUserState(uuid);
+    result = await getUserState(uuid, 'id');
     if (result != 0) {
         return res.send({ res: result });
     }
@@ -34,7 +34,7 @@ app.get('/:uuid', checkjwt, async (req, res) => {
         },
     })
         .then(async (result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -177,7 +177,7 @@ app.put("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, res)
         },
     })
         .then(async (result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -210,7 +210,7 @@ app.delete("/moderator/:moderatorUUID", checkjwt, checkActiveUUID, async (req, r
         },
     })
         .then(async (result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -301,7 +301,7 @@ app.put('/:uuid', checkjwt, authorized, checkActiveUUID, async (req, res) => {
         },
     })
         .then(async (result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -466,7 +466,7 @@ app.delete('/deleteAccount/:token', checkjwt, async (req, res) => {
             },
         })
             .then(async (result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {
@@ -490,9 +490,9 @@ app.get("/:uuid/moderator/hashtags", checkjwt, authorized, checkActiveUUID, asyn
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        let result = await getUserState(uuid);
+        let result = await getUserState(uuid, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await users.findOne({
                 where: {
                     "uuid": {
@@ -539,9 +539,9 @@ app.get("/:uuid/moderator/reactions", checkjwt, authorized, checkActiveUUID, asy
     const limit = req.query.page === undefined ? 10 : parseInt(req.query.limit);
 
     try {
-        let result = await getUserState(uuid);
+        let result = await getUserState(uuid, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await users.findOne({
                 where: {
                     "uuid": {

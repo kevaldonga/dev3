@@ -74,7 +74,7 @@ app.delete("/:reactionUUID", checkjwt, checkActiveUUID, authorizedAsModerator, a
         },
     })
         .then((result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -95,9 +95,9 @@ app.post("/:reactionUUID/moderator/:uuid", checkjwt, authorizedAsModerator, asyn
     const uuid = req.params.uuid;
 
     try {
-        let result = await getUserState(uuid);
+        let result = await getUserState(uuid, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await users.findOne({
                 where: {
                     "uuid": {
@@ -151,9 +151,9 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
     const uuid = req.params.uuid;
 
     try {
-        let result = await getUserState(uuid);
+        let result = await getUserState(uuid, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await users.findOne({
                 where: {
                     "uuid": {
@@ -197,7 +197,7 @@ app.delete("/:reactionUUID/moderator/:uuid", async (req, res) => {
             },
         })
             .then((result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {

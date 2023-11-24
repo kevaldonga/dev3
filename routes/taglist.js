@@ -56,7 +56,7 @@ app.put("/:tagUUID/moderator/:uuid", checkjwt, authorizedAsModerator, checkActiv
         },
     })
         .then((result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -86,7 +86,7 @@ app.delete("/:tagUUID", checkjwt, authorizedAsModerator, async (req, res) => {
         },
     })
         .then((result) => {
-            if (result == 0) {
+            if (result == undefined) {
                 res.status(409).send({ error: true, res: "Invalid resource" });
             }
             else {
@@ -146,7 +146,7 @@ app.get("/:tagUUID/followers", async (req, res) => {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
-        if (result == 0) {
+        if (result == undefined) {
             return res.status(409).send({ error: true, res: "Invalid resource" });
         }
 
@@ -180,9 +180,9 @@ app.post("/:profileUUID/follows/:tagUUID", checkjwt, authorizedForProfileUUID, a
     const tagUUID = req.params.tagUUID;
 
     try {
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -245,9 +245,9 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
     const tagUUID = req.params.hashtagUUID;
 
     try {
-        let result = await getUserState(profileUUID);
+        let result = await getUserState(profileUUID, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await profiles.findOne({
                 where: {
                     "uuid": {
@@ -299,7 +299,7 @@ app.delete("/:profileUUID/unfollows/:tagUUID", checkjwt, authorizedForProfileUUI
             },
         })
             .then((result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {
@@ -336,9 +336,9 @@ app.post("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModerato
 
         const hashtagId = result.id;
 
-        result = await getUserState(uuid);
+        result = await getUserState(uuid, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await users.findOne({
                 where: {
                     "uuid": {
@@ -393,9 +393,9 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
 
         const hashtagId = result.id;
 
-        result = await getUserState(uuid);
+        result = await getUserState(uuid, 'id');
 
-        if (result == 0) {
+        if (result == undefined) {
             result = await users.findOne({
                 where: {
                     "uuid": {
@@ -422,7 +422,7 @@ app.delete("/:tagUUID/moderator/:uuid", checkjwt, authorized, authorizedAsModera
             },
         })
             .then((result) => {
-                if (result == 0) {
+                if (result == undefined) {
                     res.status(409).send({ error: true, res: "Invalid resource" });
                 }
                 else {
